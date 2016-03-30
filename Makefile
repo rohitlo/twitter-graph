@@ -5,6 +5,9 @@ data/mytweets.txt:
 avg:
 	cat data/mytweets.txt | ./bin/online-graph.rb
 
+full:
+	cat data-gen/tweets.txt | ./bin/cleanit.rb | ./bin/online-graph.rb
+
 data:
 	mkdir -p data
 
