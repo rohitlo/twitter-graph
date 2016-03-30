@@ -4,10 +4,9 @@ require 'priority_queue'
 require 'set'
 
 class Processor
-  attr_accessor :latest, :myid
+  attr_accessor :latest
   def initialize
     @latest = 0
-    @myid = 0
     @edges = {}
     @queue = PriorityQueue.new()
   end
