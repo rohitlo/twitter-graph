@@ -15,6 +15,10 @@ require 'time'
 
 def process(my_hash)
   begin
+    # sanity check
+    myid = my_hash['id']
+    return nil unless myid
+
     # Only handle tweets (not the limit and any other kind of json).
     created_at = my_hash['created_at']
     return nil unless created_at
@@ -38,7 +42,7 @@ def process(my_hash)
     # not worried about persistance of graph nodes.
     # DEBUG: nodes = hset.to_a.map(&:to_s).sort
     nodes = hset.to_a.map(&:hash).sort
-    return {:ctime => ctime, :nodes => nodes}
+    return {:id => myid, :ctime => ctime, :nodes => nodes}
   rescue
     # we only want to discard the record in case of any error
     # in the stream.
@@ -62,7 +66,7 @@ ARGF.each do |l|
   # Generate edges with creating time attached.
   v[:nodes].combination(2).each do |n|
     # DEBUG p v
-    print v[:ctime],',',n.join(','), "\n"
+    print v[:id],',', v[:ctime],',',n.join(','), "\n"
   end
   STDOUT.flush
 end
