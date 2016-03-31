@@ -39,7 +39,7 @@ class TweetProcessor:
             self.queue[edge_key] = ctime
             self.edges[edge_key] = ctime
 
-    def process(self, ctime, nodes):
+    def update_hashtags(self, ctime, hashtags):
         """
         Process the given set of hashtags for the given time.
         """
@@ -49,9 +49,9 @@ class TweetProcessor:
         if ctime > self.latest:
             self.latest = ctime
 
-        self.dogc()
+        self.collect_garbage()
 
-        for edge in itertools.combinations(nodes, 2):
+        for edge in itertools.combinations(hashtags, 2):
             self.add_edge(ctime, edge)
 
     def gc_complete(self):
@@ -64,7 +64,7 @@ class TweetProcessor:
         _, ctime = self.queue.peekitem()
         return self.in_window(ctime)
 
-    def dogc(self):
+    def collect_garbage(self):
         """
         Perform garbage collection.
         """
@@ -84,7 +84,7 @@ class TweetProcessor:
         return (2.0 * len(self.edges))/len(nodes)
 
 
-def check_json(my_hash):
+def strip_json(my_hash):
     """
     Initial processing of the json line.
     """
@@ -105,8 +105,8 @@ def check_json(my_hash):
     if len(hset) < 2:
         return None
 
-    nodes = sorted(hash(a) for a in hset)
-    return {'ctime': ctime, 'nodes': nodes}
+    hashtags = sorted(hash(a) for a in hset)
+    return {'ctime': ctime, 'hashtags': hashtags}
 
 
 def main():
@@ -115,12 +115,12 @@ def main():
     """
     tweeter = TweetProcessor(0)
     for line in sys.stdin:
-        jhash = check_json(json.loads(line))
+        jhash = strip_json(json.loads(line))
         if not jhash:
             print(tweeter.average())
             continue
 
-        tweeter.process(jhash['ctime'], jhash['nodes'])
+        tweeter.update_hashtags(jhash['ctime'], jhash['hashtags'])
         print(tweeter.average())
 
 if __name__ == "__main__":
