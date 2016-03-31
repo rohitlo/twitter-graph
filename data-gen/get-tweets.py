@@ -30,9 +30,9 @@ class StdOutListener(StreamListener):
     # this is the event handler for new data
     def on_data(self, data):
         if not os.path.isfile(self.filename):    # check if file doesn't exist
-            f = file(self.filename, 'w')
+            f = open(self.filename, 'w')
             f.close()
-        with open(self.filename, 'ab') as f:     
+        with open(self.filename, 'a') as f:     
             f.write(data)
         f.closed
         
@@ -41,10 +41,10 @@ class StdOutListener(StreamListener):
         print(status)
 
 if __name__ == '__main__':
-    listener = StdOutListener(file_dir + "/tweets.txt")
+    listener = StdOutListener(file_dir + "/new-tweets.txt")
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
 
-    print "Use CTRL + C to exit at any time.\n"
+    print("Use CTRL + C to exit at any time.\n")
     stream = Stream(auth, listener)
     stream.filter(locations=[-180,-90,180,90]) # this is the entire world, any tweet with geo-location enabled
