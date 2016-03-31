@@ -20,7 +20,8 @@ data:
 	mkdir -p data
 
 lint:
-	python3 -m pylint ./bin/tweetview.py
+	python3 -m flake8 ./bin/tweetview.py
+	python3 -m pylint ./bin/tweetview.py | head
 
 T=data/test.txt
 test:
