@@ -3,52 +3,60 @@
 This module computes the rolling average vertex degree of a twitter
 tweet hashtag graph. The given window is 60 seconds.
 """
-import sys
-import json
-import time
 import itertools
-from heapdict import heapdict
+import json
+import sys
+import time
+from typing import Dict, Tuple, List, Any, Union
+
+from heap import heapdict
 
 WINDOW = 60
 TIME_FMT = "%a %b %d %H:%M:%S +0000 %Y"
-
 
 class TweetGraph:
     """
     Process the tweet, and keeps track of the time.
     """
-    def __init__(self, curtime):
+    def __init__(self, curtime: int) -> None:
+        """
+        Initialize the object
+        :param curtime: The starting time
+        :return: a tweet graph object
+        """
         self.latest = curtime
-        self.edges = {}
+        self.edges = {} # type: Dict[Tuple[int, int], int]
         self.queue = heapdict()
 
-    def in_window(self, ctime):
+    def in_window(self, ctime: int) -> bool:
         """
-        Is the passed in creation time within the window? Note that according
-        to email communication, the formula to be used is
+        Is the passed in time within the window? Note that the formula is
         `(self.latest - ctime) >= WINDOW`
+        :param ctime: The time which has to be checked.
+        :return: boolean indicating whether passed
         """
         return False if (self.latest - ctime) >= WINDOW else True
 
-    def add_edge(self, ctime, edge):
+    def add_edge(self, ctime: int, edge: Tuple[int, int]) -> None:
         """
         Add or update the given edge with the given time to
         our database of edges.
+        :param ctime: The creation time of the tweet
+        :param edge: A tuple containing two hash tags
         """
-
-        # Since edges are tuples, they are immutable and can be used as keys.
         old_ctime = self.edges.get(edge, None)
         if (not old_ctime) or (ctime > old_ctime):
             self.queue[edge] = ctime
             self.edges[edge] = ctime
 
-    def update_hashtags(self, ctime, hashtags):
+    def update_hashtags(self, ctime: int, hashtags: List[int]) -> None:
         """
         Process the given set of hashtags for the given time.
+        :param ctime: The creation time of the tweet
+        :param hashtags: The unique hashtags associated with this tweet.
         """
         if not self.in_window(ctime):
             return
-
         if ctime > self.latest:
             self.latest = ctime
 
@@ -57,25 +65,16 @@ class TweetGraph:
         for edge in itertools.combinations(hashtags, 2):
             self.add_edge(ctime, edge)
 
-    def gc_complete(self):
-        """
-        Check if the GC can be stopeed (Does any edge remain
-        that can be removed?)
-        """
-        if len(self.queue) == 0:
-            return True
-        _, ctime = self.queue.peekitem()
-        return self.in_window(ctime)
-
-    def collect_garbage(self):
+    def collect_garbage(self) -> None:
         """
         Perform garbage collection.
         """
-        while not self.gc_complete():
+        while len(self.queue) > 0 and self.in_window(self.queue.peekitem()[1]):
             min_edge, _ = self.queue.popitem()
             del self.edges[min_edge]
 
-    def avg_vdegree(self):
+    @property
+    def avg_vdegree(self) -> float:
         """
         Compute the average degree of a vertex using the formula 2*edges/nodes.
         """
@@ -87,13 +86,15 @@ class TweetGraph:
         return (2.0 * len(self.edges))/len(nodes)
 
 
-def trim_tweet(my_hash):
+def trim_tweet(my_hash: Dict[str, Any]) -> Union[Tuple[int, List[int]], None]:
     """
     Initial processing of the json line. Remove all the fluf
     except created_at, and hashtags. Discard any tweet that
     contains insufficient hash tags to make an edge.
+    :param my_hash: The tweet dict to be de-fluffed
+    :return: A tuple containing ctime and hashtags if
+    the number of unique hashtags is at least two. None otherwise.
     """
-    created_at = my_hash.get('created_at', None)
 
     htags = my_hash.get('entities', {}).get('hashtags', [])
     # Discard any tweet that does not contain at least two distinct
@@ -104,15 +105,18 @@ def trim_tweet(my_hash):
     # keys always have a well defined edge name.
     hashtags = set(hash(h['text']) for h in htags)
     if len(hashtags) >= 2:
-        return {'ctime': created_at, 'hashtags': sorted(hashtags)}
+        return my_hash['ctime'], sorted(hashtags)
     else:
         return None
 
 
-def get_tweet(line):
+def get_tweet(line: str) -> Union[Dict[str, object], None]:
     """
     Parse the line into json, and check that it is a valid tweet
     and not a limit message.
+    :param line: The json line to be parsed.
+    :return: If this is a valid tweet, the dict containing creation
+    time and hashtags. None otherwise.
     """
     try:
         j = json.loads(line)
@@ -123,7 +127,7 @@ def get_tweet(line):
         # We validate the creation time here. If the creation time
         # is in invalid format, it is an invalid tweet.
         ctime = int(time.mktime(time.strptime(created_at, TIME_FMT)))
-        j['created_at'] = ctime
+        j['ctime'] = ctime
         return j
     except ValueError:
         # We do not expect any records to be malformed. However, if there
@@ -144,12 +148,12 @@ def main():
         if not tweet:
             # Do not print rolling average in case this is not a valid tweet
             continue
-        jhash = trim_tweet(tweet)
-        if jhash:
-            tweetgraph.update_hashtags(jhash['ctime'], jhash['hashtags'])
+        jtup = trim_tweet(tweet)
+        if jtup:
+            tweetgraph.update_hashtags(jtup[0], jtup[1])
         # We have to print average each time a new tweet makes its
         # appearance irrespective of whether it can be ignored or not.
-        print(tweetgraph.avg_vdegree())
+        print(tweetgraph.avg_vdegree)
 
 if __name__ == "__main__":
     main()
