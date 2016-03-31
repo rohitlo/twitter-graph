@@ -80,10 +80,8 @@ end
 def textread
   STDIN.each do |l|
     case l
-    when /^@/   # For debug.
-      puts l,"\n"
-      next
     when /^#/
+      puts l,"\n"
       next
     end
     created, *nodes = l.split(/,/).map(&:to_i)
