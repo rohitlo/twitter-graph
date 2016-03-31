@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-import heapdict
+from heapdict import heapdict
 import itertools
 
 #heapq
@@ -11,7 +11,7 @@ class Processor:
     def __init__(self):
         self.latest = 0
         self.edges = {}
-        self.queue = heapdict.heapdict()
+        self.queue = heapdict()
 
     def add_edge(self, ctime, edge):
         edge_key = ' '.join(map(str,edge))

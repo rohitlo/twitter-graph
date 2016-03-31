@@ -37,10 +37,12 @@ class Processor
     if ctime > @latest
       @latest = ctime
     end
+    # GC should be called _before_ addition of
+    # new nodes.
+    gc()
     nodes.combination(2).each do |edge|
       add_edge(ctime, edge)
     end
-    gc()
   end
 
   def gc_complete?()
