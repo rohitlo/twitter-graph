@@ -24,9 +24,12 @@ class TweetGraph:
 
     def in_window(self, ctime):
         """
-        Is the passed in creation time within the window?
+        Is the passed in creation time within the window? Note that according
+        to email communication, the formula to be used is
+        `(self.latest + 1 - ctime) >= WINDOW`
+        rather than `(self.latest - ctime) >= WINDOW`
         """
-        return False if (self.latest - ctime) >= WINDOW else True
+        return False if (self.latest + 1 - ctime) >= WINDOW else True
 
     def add_edge(self, ctime, edge):
         """
@@ -75,68 +78,79 @@ class TweetGraph:
 
     def avg_vdegree(self):
         """
-        Compute the average degree of a vertex.
+        Compute the average degree of a vertex using the formula 2*edges/nodes.
         """
         if not self.edges:
             return 0
 
         # Our edge.keys are tuples of hashtags. We flatten them.
-        nodes = set(itertools.chain(*self.edges.keys()))
+        nodes = set(itertools.chain.from_iterable(self.edges.keys()))
         return (2.0 * len(self.edges))/len(nodes)
 
 
-def strip_json(my_hash):
+def trim_tweet(my_hash):
     """
     Initial processing of the json line. Remove all the fluf
     except created_at, and hashtags. Discard any tweet that
-    do not contain these, or contains insufficient hash tags
-    to make an edge.
+    contains insufficient hash tags to make an edge.
     """
-
-    # There are elements like limits that do not represent
-    # tweets.
     created_at = my_hash.get('created_at', None)
-    if not created_at:
-        return None
-    ctime = int(time.mktime(time.strptime(created_at, TIME_FMT)))
 
-    htags = my_hash.get('entities', {}).get('hashtags', None)
-    if not htags:
-        return None
-
+    htags = my_hash.get('entities', {}).get('hashtags', [])
     # Discard any tweet that does not contain at least two distinct
     # hash tags, which is necessary to make at least one edge.
-    hset = set(h['text'] for h in htags)
-    if len(hset) < 2:
-        return None
-
     # We convert the strings to their hash, which makes it simpler
     # and faster to process (especially if we want to do this part
     # in another process). We also sort to make sure that any two
     # keys always have a well defined edge name.
-    hashtags = sorted(hash(a) for a in hset)
-    return {'ctime': ctime, 'hashtags': hashtags}
+    hashtags = set(hash(h['text']) for h in htags)
+    if len(hashtags) >= 2:
+        return {'ctime': created_at, 'hashtags': sorted(hashtags)}
+    else:
+        return None
+
+
+def get_tweet(line):
+    """
+    Parse the line into json, and check that it is a valid tweet
+    and not a limit message.
+    """
+    try:
+        j = json.loads(line)
+        created_at = j.get('created_at', None)
+        if not created_at:
+            return None
+
+        # We validate the creation time here. If the creation time
+        # is in invalid format, it is an invalid tweet.
+        ctime = int(time.mktime(time.strptime(created_at, TIME_FMT)))
+        j['created_at'] = ctime
+        return j
+    except ValueError:
+        # We do not expect any records to be malformed. However, if there
+        # are any, it is important not to abort the whole process, and
+        # instead, just discard the record and let the user know through
+        # another channel.
+        print('EXCEPTION:', line, file=sys.stderr)
+        return None
 
 
 def main():
     """
     The entry point.
     """
-    tweeter = TweetGraph(0)
+    tweetgraph = TweetGraph(0)
     for line in sys.stdin:
-        try:
-            jhash = strip_json(json.loads(line))
-            if jhash:
-                tweeter.update_hashtags(jhash['ctime'], jhash['hashtags'])
-            # We have to print average each time a new tweet makes its
-            # appearance irrespective of whether it can be ignored or not.
-            print(tweeter.avg_vdegree())
-        except:
-            # We do not expect any records to be malformed. However, if there
-            # are any, it is important not to abort the whole process, and
-            # instead, just discard the record and let the user know through
-            # another channel.
-            print('EXCEPTION:', line, file=sys.stderr)
+        tweet = get_tweet(line)
+        if not tweet:
+            # Do not print rolling average in case this is not a valid tweet
+            continue
+        jhash = trim_tweet(tweet)
+        if jhash:
+            tweetgraph.update_hashtags(jhash['ctime'], jhash['hashtags'])
+        # We have to print average each time a new tweet makes its
+        # appearance irrespective of whether it can be ignored or not.
+        print(tweetgraph.avg_vdegree())
 
 if __name__ == "__main__":
     main()
