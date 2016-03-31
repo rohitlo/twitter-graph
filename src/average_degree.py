@@ -19,24 +19,26 @@ class TweetGraph:
     """
     Process the tweet, and keeps track of the time.
     """
-    def __init__(self, curtime: int) -> None:
+    def __init__(self, curtime: int, window: int) -> None:
         """
         Initialize the object
         :param curtime: The starting time
+        :param window: The sliding window
         :return: a tweet graph object
         """
         self.latest = curtime
         self.edges = {}  # type: Dict[Tuple[int, int], int]
         self.queue = heapdict()
+        self.window = window
 
     def in_window(self, ctime: int) -> bool:
         """
         Is the passed in time within the window? Note that the formula is
-        `(self.latest - ctime) >= WINDOW`
+        `(self.latest - ctime) >= window`
         :param ctime: The time which has to be checked.
         :return: boolean indicating whether passed
         """
-        return False if (self.latest - ctime) >= WINDOW else True
+        return False if (self.latest - ctime) >= self.window else True
 
     def add_edge(self, ctime: int, edge: Tuple[int, int]) -> None:
         """
@@ -150,7 +152,7 @@ def main():
     """
     The entry point.
     """
-    tweetgraph = TweetGraph(0)
+    tweetgraph = TweetGraph(0, WINDOW)
     for line in sys.stdin:
         tweet = get_tweet(line)
         if not tweet:
