@@ -14,6 +14,7 @@ from heapdict import heapdict
 WINDOW = 60
 TIME_FMT = "%a %b %d %H:%M:%S +0000 %Y"
 
+
 class TweetGraph:
     """
     Process the tweet, and keeps track of the time.
@@ -25,7 +26,7 @@ class TweetGraph:
         :return: a tweet graph object
         """
         self.latest = curtime
-        self.edges = {} # type: Dict[Tuple[int, int], int]
+        self.edges = {}  # type: Dict[Tuple[int, int], int]
         self.queue = heapdict()
 
     def in_window(self, ctime: int) -> bool:
@@ -65,11 +66,20 @@ class TweetGraph:
         for edge in itertools.combinations(hashtags, 2):
             self.add_edge(ctime, edge)
 
+    def gc_complete(self) -> None:
+        """
+        Check if the gc is complete.
+        """
+        if len(self.queue) == 0:
+            return True
+        _, ctime = self.queue.peekitem()
+        return self.in_window(ctime)
+
     def collect_garbage(self) -> None:
         """
         Perform garbage collection.
         """
-        while len(self.queue) > 0 and self.in_window(self.queue.peekitem()[1]):
+        while not self.gc_complete():
             min_edge, _ = self.queue.popitem()
             del self.edges[min_edge]
 
@@ -80,7 +90,6 @@ class TweetGraph:
         """
         if not self.edges:
             return 0
-
         # Our edge.keys are tuples of hashtags. We flatten them.
         nodes = set(itertools.chain.from_iterable(self.edges.keys()))
         return (2.0 * len(self.edges))/len(nodes)
@@ -153,7 +162,7 @@ def main():
             tweetgraph.update_hashtags(jtup[0], jtup[1])
         # We have to print average each time a new tweet makes its
         # appearance irrespective of whether it can be ignored or not.
-        print(tweetgraph.avg_vdegree)
+        print('%.2f' % tweetgraph.avg_vdegree)
 
 if __name__ == "__main__":
     main()
