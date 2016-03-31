@@ -55,8 +55,8 @@ end
 
 $binary = if ARGV[0] == '-a' then false else true end
 
-STDIN.each do |l|
-  v = process(JSON.parse(l))
+STDIN.each do |line|
+  v = process(JSON.parse(line))
   next unless v
   if $binary
     # Rather than printing the created_at and nodes directly in the STDOUT as

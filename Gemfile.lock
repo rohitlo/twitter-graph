@@ -2,12 +2,14 @@ GEM
   remote: https://rubygems.org/
   specs:
     PriorityQueue (0.1.2)
+    bindata (2.3.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   PriorityQueue
+  bindata
 
 BUNDLED WITH
    1.11.2
