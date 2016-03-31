@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-This module computes the rolling average indegree of a twitter
-tweet hashtag graph.
+This module computes the rolling average vertex degree of a twitter
+tweet hashtag graph. The given window is 60 seconds.
 """
 import sys
 import json
@@ -13,7 +13,7 @@ WINDOW = 60
 TIME_FMT = "%a %b %d %H:%M:%S +0000 %Y"
 
 
-class TweetProcessor:
+class TweetGraph:
     """
     Process the tweet, and keeps track of the time.
     """
@@ -33,11 +33,12 @@ class TweetProcessor:
         Add or update the given edge with the given time to
         our database of edges.
         """
-        edge_key = ' '.join(map(str, edge))
-        old_ctime = self.edges.get(edge_key, None)
+
+        # Since edges are tuples, they are immutable and can be used as keys.
+        old_ctime = self.edges.get(edge, None)
         if (not old_ctime) or (ctime > old_ctime):
-            self.queue[edge_key] = ctime
-            self.edges[edge_key] = ctime
+            self.queue[edge] = ctime
+            self.edges[edge] = ctime
 
     def update_hashtags(self, ctime, hashtags):
         """
@@ -72,39 +73,47 @@ class TweetProcessor:
             min_edge, _ = self.queue.popitem()
             del self.edges[min_edge]
 
-    def average(self):
+    def avg_vdegree(self):
         """
         Compute the average degree of a vertex.
         """
         if not self.edges:
             return 0
-        nodes = set()
-        for l_r in self.edges.keys():
-            nodes.update(l_r.split(' '))
+
+        # Our edge.keys are tuples of hashtags. We flatten them.
+        nodes = set(itertools.chain(*self.edges.keys()))
         return (2.0 * len(self.edges))/len(nodes)
 
 
 def strip_json(my_hash):
     """
-    Initial processing of the json line.
+    Initial processing of the json line. Remove all the fluf
+    except created_at, and hashtags. Discard any tweet that
+    do not contain these, or contains insufficient hash tags
+    to make an edge.
     """
+
+    # There are elements like limits that do not represent
+    # tweets.
     created_at = my_hash.get('created_at', None)
     if not created_at:
         return None
     ctime = int(time.mktime(time.strptime(created_at, TIME_FMT)))
 
-    entities = my_hash.get('entities', None)
-    if not entities:
-        return None
-
-    htags = entities.get('hashtags', None)
+    htags = my_hash.get('entities', {}).get('hashtags', None)
     if not htags:
         return None
 
-    hset = set(hm['text'] for hm in htags)
+    # Discard any tweet that does not contain at least two distinct
+    # hash tags, which is necessary to make at least one edge.
+    hset = set(h['text'] for h in htags)
     if len(hset) < 2:
         return None
 
+    # We convert the strings to their hash, which makes it simpler
+    # and faster to process (especially if we want to do this part
+    # in another process). We also sort to make sure that any two
+    # keys always have a well defined edge name.
     hashtags = sorted(hash(a) for a in hset)
     return {'ctime': ctime, 'hashtags': hashtags}
 
@@ -113,15 +122,21 @@ def main():
     """
     The entry point.
     """
-    tweeter = TweetProcessor(0)
+    tweeter = TweetGraph(0)
     for line in sys.stdin:
-        jhash = strip_json(json.loads(line))
-        if not jhash:
-            print(tweeter.average())
-            continue
-
-        tweeter.update_hashtags(jhash['ctime'], jhash['hashtags'])
-        print(tweeter.average())
+        try:
+            jhash = strip_json(json.loads(line))
+            if jhash:
+                tweeter.update_hashtags(jhash['ctime'], jhash['hashtags'])
+            # We have to print average each time a new tweet makes its
+            # appearance irrespective of whether it can be ignored or not.
+            print(tweeter.avg_vdegree())
+        except:
+            # We do not expect any records to be malformed. However, if there
+            # are any, it is important not to abort the whole process, and
+            # instead, just discard the record and let the user know through
+            # another channel.
+            print('EXCEPTION:', line, file=sys.stderr)
 
 if __name__ == "__main__":
     main()
