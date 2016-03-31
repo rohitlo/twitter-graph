@@ -61,8 +61,13 @@ class TweetGraph:
         if ctime > self.latest:
             self.latest = ctime
 
+        # Ensure that we perform gc _before_ checking if the
+        # prerequisite number of hashtags are present.
         self.collect_garbage()
 
+        # very nicely, we do not need to check for hashtags being
+        # atleast two because itertools.combinations() will not
+        # produce an item in that case.
         for edge in itertools.combinations(hashtags, 2):
             self.add_edge(ctime, edge)
 
@@ -95,28 +100,22 @@ class TweetGraph:
         return (2.0 * len(self.edges))/len(nodes)
 
 
-def trim_tweet(my_hash: Dict[str, Any]) -> Union[Tuple[int, List[int]], None]:
+def trim_tweet(my_hash: Dict[str, Any]) -> Tuple[int, List[int]]:
     """
     Initial processing of the json line. Remove all the fluf
-    except created_at, and hashtags. Discard any tweet that
-    contains insufficient hash tags to make an edge.
+    except created_at, and hashtags.
     :param my_hash: The tweet dict to be de-fluffed
     :return: A tuple containing ctime and hashtags if
     the number of unique hashtags is at least two. None otherwise.
     """
 
     htags = my_hash.get('entities', {}).get('hashtags', [])
-    # Discard any tweet that does not contain at least two distinct
-    # hash tags, which is necessary to make at least one edge.
     # We convert the strings to their hash, which makes it simpler
     # and faster to process (especially if we want to do this part
     # in another process). We also sort to make sure that any two
     # keys always have a well defined edge name.
-    hashtags = set(hash(h['text']) for h in htags)
-    if len(hashtags) >= 2:
-        return my_hash['ctime'], sorted(hashtags)
-    else:
-        return None
+    hashtags = sorted(set(hash(h['text']) for h in htags))
+    return my_hash['ctime'], hashtags
 
 
 def get_tweet(line: str) -> Union[Dict[str, object], None]:
@@ -157,9 +156,8 @@ def main():
         if not tweet:
             # Do not print rolling average in case this is not a valid tweet
             continue
-        jtup = trim_tweet(tweet)
-        if jtup:
-            tweetgraph.update_hashtags(jtup[0], jtup[1])
+        ctime, htags = trim_tweet(tweet)
+        tweetgraph.update_hashtags(ctime, htags)
         # We have to print average each time a new tweet makes its
         # appearance irrespective of whether it can be ignored or not.
         print('%.2f' % tweetgraph.avg_vdegree)
