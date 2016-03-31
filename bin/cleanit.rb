@@ -12,6 +12,11 @@
 require 'json'
 require 'set'
 require 'time'
+require 'bindata'
+require './bin/tweet.rb'
+
+# Do not produce wrong results using the wrong interpreter
+throw "Require at least 2.2" if RUBY_VERSION =~ /^(1[.]|2[.][01])/
 
 def process(my_hash)
   begin
@@ -41,24 +46,26 @@ def process(my_hash)
     return {:ctime => ctime, :nodes => nodes}
   rescue
     # we only want to discard the record in case of any error
-    # in the stream.
+    # in the stream. It may be worthwhile to log this record
+    # but that may be counter productive when we are dealing
+    # with a large amount of data, as we expect with twitter.
     return nil
   end
 end
 
-case RUBY_VERSION
-when /^1./
-  puts "Require at least 2.2"
-  exit 1
-when /^2.[01]/
-  puts "Require at least 2.2"
-  exit 1
-end
+$binary = if ARGV[0] == '-a' then false else true end
 
-ARGF.each do |l|
+STDIN.each do |l|
   v = process(JSON.parse(l))
   next unless v
-  print v[:ctime],',',v[:nodes].join(','),"\n"
+  if $binary
+    # Rather than printing the created_at and nodes directly in the STDOUT as
+    # strings separated by newline, we output binary records. This allows us
+    # to reduce the data being written. (28k -> 16k for tweets.txt)
+    to_tweet(v[:ctime], v[:nodes]).write(STDOUT)
+  else
+    # print the record directly which is the simplest, and easiest to debug.
+    puts [v[:ctime], v[:nodes]].join(',')
+  end
   STDOUT.flush
 end
-
