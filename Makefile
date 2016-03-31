@@ -13,15 +13,16 @@ full.rb.a:
 full.py.a:
 	cat data-gen/tweets.txt | ./bin/cleanit.py -a | ./bin/online-graph.py -a
 
+W=data-gen/tweets.txt
 full:
-	cat data-gen/tweets.txt | ./bin/tweetview.py
+	./src/average_degree.py < $(W)
 
 data:
 	mkdir -p data
 
 lint:
-	python3 -m flake8 ./bin/tweetview.py
-	python3 -m pylint ./bin/tweetview.py | head
+	python3 -m flake8 ./src/average_degree.py
+	python3 -m pylint ./src/average_degree.py | head
 
 T=data/test.txt
 test:
