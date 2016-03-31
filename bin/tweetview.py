@@ -26,10 +26,9 @@ class TweetGraph:
         """
         Is the passed in creation time within the window? Note that according
         to email communication, the formula to be used is
-        `(self.latest + 1 - ctime) >= WINDOW`
-        rather than `(self.latest - ctime) >= WINDOW`
+        `(self.latest - ctime) >= WINDOW`
         """
-        return False if (self.latest + 1 - ctime) >= WINDOW else True
+        return False if (self.latest - ctime) >= WINDOW else True
 
     def add_edge(self, ctime, edge):
         """
