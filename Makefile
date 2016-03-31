@@ -25,4 +25,4 @@ lint:
 
 T=data/test.txt
 test:
-	cat $(T) | ./bin/online-graph.rb
+	cat $(T) | ./bin/online-graph.py -a
