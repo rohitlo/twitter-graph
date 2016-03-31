@@ -13,16 +13,18 @@ class Processor:
         self.edges = {}
         self.queue = heapdict()
 
+
     def is_valid(self, ctime):
-        return False if (self.latest - ctime ) >= WINDOW else True
+        return False if (self.latest - ctime) >= WINDOW else True
 
 
     def add_edge(self, ctime, edge):
-        edge_key = ' '.join(map(str,edge))
+        edge_key = ' '.join(map(str, edge))
         old_ctime = self.edges.get(edge_key, None)
         if (not old_ctime) or (ctime > old_ctime):
             self.queue[edge_key] = ctime
             self.edges[edge_key] = ctime
+
 
     def process(self, ctime, nodes):
         if not self.is_valid(ctime): return
@@ -55,14 +57,14 @@ class Processor:
 def process(my_hash):
     created_at = my_hash.get('created_at', None)
     if not created_at: return None
-    ctime = int(time.mktime(time.strptime(created_at,"%a %b %d %H:%M:%S +0000 %Y")))
+    ctime = int(time.mktime(time.strptime(created_at, "%a %b %d %H:%M:%S +0000 %Y")))
 
     entities = my_hash.get('entities', None)
     if not entities: return None
-    
+
     htags = entities.get('hashtags', None)
     if not htags: return None
-    
+
     hset = set([hm['text'] for hm in  htags])
     if len(hset) < 2: return None
 
