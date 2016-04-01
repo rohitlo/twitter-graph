@@ -125,7 +125,7 @@ coverage: ## Collect previously run unittest coverage detailed report in ./htmlc
 ## Run the insight test suite
 ## >	make test
 ## 
-test: ## Run the insight test suite
+test: .prereq.heapdict ## Run the insight test suite
 	@echo Executing `ls insight_testsuite/tests/ | wc -l` tests
 	(cd insight_testsuite/ && ./run_tests.sh)
 	@cat insight_testsuite/results.txt 
