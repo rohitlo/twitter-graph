@@ -28,6 +28,17 @@ You can install all the dependencies with
 
     make prereq
 
+## Useful tools
+
+The set of targets exposed by `Makefile` can be obtained by
+
+    make
+
+The individual targets are hooked up to install prerequisites correctly.
+You can install all the dependencies at once with
+
+    make prereq
+
 To run unittests with coverage, execute
 
     make unittest
@@ -38,12 +49,11 @@ The code quality may be checked with linters with
 
 To run the code on data-gen/tweets.txt, use
 
-    make run
+    make runit
 
 or alternatively
 
-    make run W=data-gen/tweets.txt
-
+    make runit W=data-gen/tweets.txt
 
 ## Notes on implementation
 
