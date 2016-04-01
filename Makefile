@@ -84,7 +84,7 @@ deltest: ## Remove an insight test case (N=<test case name>)
 ## Install all prerequisites on the user home
 ## >	make prereq U=--user
 ## 
-O=
+O=--user
 prereq: | .prereq.heapdict .prereq.coverage .prereq.flake8 .prereq.pylint ## Install all prerequisites
 	@echo done.
 
@@ -102,24 +102,26 @@ unittest-c: unittest-branch unittest-statement ## Run unittests and print branch
 
 ## Run unittests and print branck coveage
 ## >	make unittest-branch
-unittest-branch: .prereq.coverage ## Run unittests and report branch coverage
+unittest-branch: .prereq.coverage .prereq.heapdict ## Run unittests and report branch coverage
 	python3 -m coverage run --branch --source=src/average_degree.py src/test_average_degree.py
 	@python3 -m coverage report
 
 ## Run unittests and print statement coveage
 ## >	make unittest-statement
-unittest-statement: .prereq.coverage ## Run unittests and report statement coverage
+unittest-statement: .prereq.coverage .prereq.heapdict ## Run unittests and report statement coverage
 	python3 -m coverage run --source=src/average_degree.py src/test_average_degree.py
 	@python3 -m coverage report
 
 ## Run unittests without collecting coverage
-unittests: ## Run unittets without collecting coverage
-	python3 src/average_degree.py src/test_average_degree.py -v
+unittests: .prereq.heapdict  ## Run unittets without collecting coverage
+	python3 src/test_average_degree.py -v
 
 ## Report detailed coverage of previous unittests in html
 ## >	make coverage
 coverage: ## Collect previously run unittest coverage detailed report in ./htmlcov
-	python3 -m coverage html
+	@test -e .coverage || echo you have not executed unittest-statement or unittest-branch
+	@test -e .coverage && python3 -m coverage html
+	@echo Coverage report generated at $(PWD)/htmlcov/index.html
 ## 
 
 ## Run the insight test suite
@@ -132,7 +134,8 @@ test: .prereq.heapdict ## Run the insight test suite
 
 ## Cleanup all the temporary files
 ## >	make clean
-clean: ## Remove traces of previous execution such as coverage, tempfiles
+clean: ## Remove traces of previous execution such as coverage, tempfiles, touch files etc.
 	@rm -rf htmlcov .coverage*
 	@rm -rf insight_testsuite/results.txt 
+	@rm -rf .prereq.*
 

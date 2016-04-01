@@ -9,30 +9,37 @@ The language used is `Python`. It requires at least version `3.5` for it
 to run.
 
 
-## Basic invocation
+## Basic invocation and tests
 
-The `run` target executes `./run.sh` after installing prerequisite libraries.
+The `run` target executes `./run.sh` after installing prerequisite libraries in
+the user home.
 
     make run
+
+or to allow installation of libraries in the system path
+
+    make run O=
+
+To execute the _insight_ test suite, (installing prerequisites in user home) use
+
+    make test
+
+or
+
+    make test O=
+
+which installs the required libraries in the system path.
 
 ## Additional libraries required.
 
 This solution makes use of [heapdict](https://pypi.python.org/pypi/HeapDict)
-which can be installed by either
+which can be installed by (takes O= variable)
 
     make i-heapdict
 
-or for a user install
-
-    make i-heapdict O=--user
-
-You can install all the dependencies with
+You can install all the dependencies (takes O= variable)
 
     make prereq
-
-or
-
-    make prereq O=--user
 
 ### Unit tests
 
@@ -59,13 +66,10 @@ by extracting coverage. The project has 99% statement coverage.
 ### Linters
 
 The project uses two linters: `flake8` and `pylint` (included in `prereq`) They can also
-be installed separately
+be installed separately (takes O= variable)
+
 
     make i-flake8 i-pylint
-
-for user
-
-    make i-flake8 i-pylint O=--user
 
 The lint can be checked for both tools at once using the `lint` target
 
