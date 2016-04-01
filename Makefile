@@ -30,7 +30,7 @@ help: ## Full Help.
 	@echo "Run the insight test suite"
 	@echo ">	make test"
 	@echo
-	@echo "Generate a test for the insight test suite (see makefile for examples)"
+	@echo "Generate a test for the insight test suite (see Makefile for examples)"
 	@echo "The T parameter uses Mon Mar 28 23:23:12 +0000 2016 as the base time"
 	@echo ">	make gentest T=<time> H=<hashtags> N=<name>"
 	@echo "e.g."
