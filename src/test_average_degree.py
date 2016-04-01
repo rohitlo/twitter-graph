@@ -55,121 +55,113 @@ class TestFunctions(unittest.TestCase):
 
 class TestTweetGraph(unittest.TestCase):
     def setUp(self):
-        self.tg = average_degree.TweetGraph(1060, 60)
-        self.edges = {(1,2): 999, (1,3): 1000, (2,3):1001}
+        self.etg = average_degree.TweetGraph(1060, 60)
+        self.mytg = average_degree.TweetGraph(1000, 60)
+
+        edges = {(1,2): 999, (1,3): 1000, (2,3):1001}
+        self.mytg.edges = edges
+        for k in edges.keys():
+            self.mytg.queue[k] = edges[k]
 
     def set_current_edges(self, edges):
-        self.tg.edges = edges
+        self.etg.edges = edges
         for k in edges.keys():
-            self.tg.queue[k] = edges[k]
+            self.etg.queue[k] = edges[k]
 
     def test_in_window(self):
         """>    Should correctly determine if passed time is within window."""
-        self.tg.latest = 1060
-        self.tg.window = 60
-        self.assertEqual(self.tg.in_window(999), False)
-        self.assertEqual(self.tg.in_window(1000), False)
-        self.assertEqual(self.tg.in_window(1001), True)
+        self.etg.latest = 1060
+        self.etg.window = 60
+        self.assertEqual(self.etg.in_window(999), False)
+        self.assertEqual(self.etg.in_window(1000), False)
+        self.assertEqual(self.etg.in_window(1001), True)
 
     def test_add_edge(self):
         """>    Should add a new edge correctly on both queue and dict"""
         self.set_current_edges({(1,2): 1001, (1,3): 1002})
 
-        self.tg.add_edge(1003,(2,3))
-        self.assertEqual(self.tg.edges, {(1,2): 1001, (1,3): 1002, (2,3): 1003})
-        self.assertEqual(self.tg.queue.peekitem(), ((1, 2), 1001))
-        self.assertEqual(self.tg.queue[(2,3)], 1003)
-        self.assertEqual(self.tg.queue[(1,2)], 1001)
+        self.etg.add_edge(1003,(2,3))
+        self.assertEqual(self.etg.edges, {(1,2): 1001, (1,3): 1002, (2,3): 1003})
+        self.assertEqual(self.etg.queue.peekitem(), ((1, 2), 1001))
+        self.assertEqual(self.etg.queue[(2,3)], 1003)
+        self.assertEqual(self.etg.queue[(1,2)], 1001)
 
     def test_add_edge_update(self):
         """>    Should update if an edge exists, and later time."""
-        self.set_current_edges({(1,2): 1001, (1,3): 1002, (2,3): 1003})
-        self.tg.add_edge(1060,(2,3))
-        self.assertEqual(self.tg.edges, {(1,2): 1001, (1,3): 1002, (2,3): 1060})
+        self.mytg.add_edge(1060,(2,3))
+        self.assertEqual(self.mytg.edges, {(1,2): 999, (1,3): 1000, (2,3): 1060})
 
 
     def test_add_edge_no_expired(self):
         """>    Should not add an expired edge."""
-        self.set_current_edges({(1,2): 1001, (1,3): 1002, (2,3): 1003})
-        self.tg.add_edge(1000,(2,3))
-        self.assertEqual(self.tg.edges, {(1,2): 1001, (1,3): 1002, (2,3): 1003})
+        self.mytg.add_edge(1000,(2,3))
+        self.assertEqual(self.mytg.edges, {(1,2): 999, (1,3): 1000, (2,3): 1001})
 
 
     def test_avg_vdegree_zero(self):
         """>    Should correctly return zero average vertex degree for empty"""
-        self.assertEqual(self.tg.avg_vdegree, 0)
+        self.assertEqual(self.etg.avg_vdegree, 0)
 
     def test_avg_vdegree_for_line(self):
         """>    Should correctly return 1 as average vertex degree for line"""
         self.set_current_edges({(1,2): 1001})
-        self.assertEqual(self.tg.avg_vdegree, 1)
+        self.assertEqual(self.etg.avg_vdegree, 1)
 
     def test_avg_vdegree_for_triangle(self):
         """>    Should correctly return 2 as average vertex degree for triangle"""
-        self.set_current_edges({(1,2): 1001, (1,3): 1002, (2,3): 1003})
-        self.assertEqual(self.tg.avg_vdegree, 2)
+        self.assertEqual(self.mytg.avg_vdegree, 2)
 
     def test_collect_garbage_empty(self):
         """>    Should not error out on gc of empty graph"""
-        try: self.tg.collect_garbage()
+        try: self.etg.collect_garbage()
         except: self.fail("collect_grabage() raised unexpectedly!")
 
     def test_collect_garbage_noop(self):
         """>    Should correctly exit gc when there is nothing to collect"""
-        self.set_current_edges(self.edges)
-        self.assertEqual(len(self.tg.edges.keys()), 3)
-        self.tg.latest = 1003
-        self.tg.collect_garbage()
-        self.assertEqual(len(self.tg.edges.keys()), 3)
+        self.mytg.latest = 1003
+        self.mytg.collect_garbage()
+        self.assertEqual(len(self.mytg.edges.keys()), 3)
 
     def test_collect_garbage_1(self):
         """>    Should correctly garbage collect"""
-        self.set_current_edges(self.edges)
-        self.assertEqual(len(self.tg.edges.keys()), 3)
-        self.tg.latest = 1060
+        self.mytg.latest = 1060
         # this should remove both 999 and 1000
-        self.tg.collect_garbage()
-        self.assertEqual(len(self.tg.edges.keys()), 1)
+        self.mytg.collect_garbage()
+        self.assertEqual(len(self.mytg.edges.keys()), 1)
 
     def test_collect_garbage_all(self):
         """>    Should correctly garbage collect all expired"""
-        self.set_current_edges(self.edges)
-        self.assertEqual(len(self.tg.edges.keys()), 3)
-        self.tg.latest = 1070
+        self.mytg.latest = 1070
         # this should remove all
-        self.tg.collect_garbage()
-        self.assertEqual(len(self.tg.edges.keys()), 0)
+        self.mytg.collect_garbage()
+        self.assertEqual(len(self.mytg.edges.keys()), 0)
 
     def test_gc_complete_empty(self):
         """>    Should correctly identify GC exit on empty graph"""
-        self.assertEqual(self.tg.gc_complete(), True)
+        self.assertEqual(self.etg.gc_complete(), True)
 
     def test_gc_complete(self):
         """>    Should correctly identify if GC should continue"""
-        self.set_current_edges(self.edges)
         self.tg.latest = 1070
         self.assertEqual(self.tg.gc_complete(), False)
 
     def test_gc_complete(self):
         """>    Should correctly identify if GC should exit after one GC is done"""
-        self.set_current_edges(self.edges)
-        self.tg.latest = 1070
-        self.tg.collect_garbage()
-        self.assertEqual(self.tg.gc_complete(), True)
+        self.mytg.latest = 1070
+        self.mytg.collect_garbage()
+        self.assertEqual(self.mytg.gc_complete(), True)
 
     def test_update_hashtags(self):
         """>    Should correctly update hashtags when tweets arrive"""
-        self.set_current_edges(self.edges)
-        self.tg.latest = 1000
-        self.tg.update_hashtags(1004, (2, 3))
-        self.assertEqual(len(self.tg.edges.keys()), 3)
+        self.mytg.latest = 1000
+        self.mytg.update_hashtags(1004, (2, 3))
+        self.assertEqual(len(self.mytg.edges.keys()), 3)
 
     def test_update_hashtags_with_gc(self):
         """>    Should correctly start garbage collection on new tweet"""
-        self.set_current_edges(self.edges)
-        self.tg.latest = 1000
-        self.tg.update_hashtags(1061, (2, 3))
-        self.assertEqual(len(self.tg.edges.keys()), 1)
+        self.mytg.latest = 1000
+        self.mytg.update_hashtags(1061, (2, 3))
+        self.assertEqual(len(self.mytg.edges.keys()), 1)
 
 
 if __name__ == '__main__':
