@@ -113,7 +113,8 @@ class TweetGraph:
         # appearance irrespective of whether it can be ignored or not.
         return self.avg_vdegree
 
-    def trim_tweet(self, my_hash: Dict[str, Any]) -> Tuple[int, List[int]]:
+    @staticmethod
+    def trim_tweet(my_hash: Dict[str, Any]) -> Tuple[int, List[int]]:
         """
         Initial processing of the json line. Remove all the fluf
         except created_at, and hashtags.
