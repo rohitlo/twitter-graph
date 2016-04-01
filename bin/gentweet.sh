@@ -8,6 +8,6 @@ shift
 echo $input $output
 echo time = $t
 echo nodes = $@
-./src/gen-tweet.py $t $@ >> $input/tweets.txt
+./bin/gen-tweet.py $t $@ >> $input/tweets.txt
 cat $input/tweets.txt | ./src/average_degree.py > $output/output.txt
 cat $output/output.txt
