@@ -5,17 +5,17 @@ all:
 	  @awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_0-9-]+:.*?## / {printf "\033[32m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 help: ## Detailed help.
-	@grep '^##' $(MAKEFILE_LIST) | sed -e 's,^## ,,g' | awk '/^>/{printf "\033[32m%s\033[0m\n", $$0} !/^>/{print;}'
+	@sed -ne 's,^## ,,gp' $(MAKEFILE_LIST) | awk '/^>/{printf "\033[32m%s\033[0m\n", $$0} !/^>/{print;}'
 
-# Using ascii data in the pipe
+# Using ascii data in the pipe. Not a rolling average
 ascii.rb:
 	cat data-gen/tweets.txt | ./bin/cleanit.rb -a | ./bin/online-graph.rb -a
 
-# Using binary data in the pipe
+# Using binary data in the pipe. Not a rolling average
 binary.rb:
 	cat data-gen/tweets.txt | ./bin/cleanit.rb | ./bin/online-graph.rb
 
-# only ascii data transfer in the pipe for python
+# only ascii data transfer in the pipe for python. Not a rolling average
 ascii.py:
 	cat data-gen/tweets.txt | ./bin/cleanit.py -a | ./bin/online-graph.py -a
 
