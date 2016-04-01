@@ -7,23 +7,23 @@ all:
 help: ## Detailed help.
 	@sed -ne 's,^## ,,gp' $(MAKEFILE_LIST) | awk '/^>/{printf "\033[32m%s\033[0m\n", $$0} !/^>/{print;}'
 
-# Using ascii data in the pipe. Not a rolling average
-ascii.rb:
-	cat data-gen/tweets.txt | ./bin/cleanit.rb -a | ./bin/online-graph.rb -a
-
-# Using binary data in the pipe. Not a rolling average
-binary.rb:
-	cat data-gen/tweets.txt | ./bin/cleanit.rb | ./bin/online-graph.rb
-
-# only ascii data transfer in the pipe for python. Not a rolling average
-ascii.py:
-	cat data-gen/tweets.txt | ./bin/cleanit.py -a | ./bin/online-graph.py -a
-
 ## Execute the program on a given tweet file
 ## >	make runit W=./data-gen/tweets.txt
 W=data-gen/tweets.txt
 runit: .prereq.heapdict ## Run the program on a given tweet (W=<tweet-file>)
 	./src/average_degree.py < $(W)
+
+# Using ascii data in the pipe. Not a rolling average
+rb-ascii:
+	./bin/cleanit.rb -a < $(W) | ./bin/online-graph.rb -a
+
+# Using binary data in the pipe. Not a rolling average
+rb-binary:
+	./bin/cleanit.rb <$(W) | ./bin/online-graph.rb
+
+# only ascii data transfer in the pipe for python. Not a rolling average
+py-ascii:
+	./bin/cleanit.py -a <$(W) | ./bin/online-graph.py -a
 
 ## Execute the run.sh
 ## >	make run
@@ -84,17 +84,20 @@ deltest: ## Remove an insight test case (N=<test case name>)
 ## Install all prerequisites on the user home
 ## >	make prereq U=--user
 ## 
-U=
+O=
 prereq: | .prereq.heapdict .prereq.coverage .prereq.flake8 .prereq.pylint ## Install all prerequisites
 	@echo done.
 
+i-%: .prereq.%
+	@echo done
+
 .prereq.%:
-	pip3 install $* $(U)
+	pip3 install $* $(O)
 	@touch $@
 
 ## Run unittests and print statement and branch coverage
-## >	make unittest
-unittest: unittest-branch unittest-statement ## Run unittests and print branch and statement coverage
+## >	make unittest-c
+unittest-c: unittest-branch unittest-statement ## Run unittests and print branch and statement coverage
 	@echo done.
 
 ## Run unittests and print branck coveage
@@ -108,7 +111,10 @@ unittest-branch: .prereq.coverage ## Run unittests and report branch coverage
 unittest-statement: .prereq.coverage ## Run unittests and report statement coverage
 	python3 -m coverage run --source=src/average_degree.py src/test_average_degree.py
 	@python3 -m coverage report
-## 
+
+## Run unittests without collecting coverage
+unittests: ## Run unittets without collecting coverage
+	python3 src/average_degree.py src/test_average_degree.py -v
 
 ## Report detailed coverage of previous unittests in html
 ## >	make coverage
