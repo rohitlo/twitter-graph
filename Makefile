@@ -1,97 +1,67 @@
-## The following commands are provided:
-## 
-## Execute the run.sh
-## >	make run
-## 
-## Execute the program on a given tweet file
-## >	make runit W=./data-gen/tweets.txt
-## 
-## Install all prerequisites
-## >	make prereq
-## 
-## Install all prerequisites on the user home
-## >	make prereq U=--user
-## 
-## Run lint on the source
-## >	make lint
-## 
-## Run unittests and extract coverage
-## >	make unittest
-## 
-## Report detailed coverage of previous unittests in html
-## >	make coverage
-## 
-## Run the insight test suite
-## >	make test
-## 
-## Generate a test for the insight test suite (see target for examples)
-## The T parameter uses Mon Mar 28 23:23:12 +0000 2016 as the base time
-## >	make gentest T=<time> H=<hashtags> N=<name>
-## e.g.
-## >	make gentest T=0 H='A B C' N=test-eviction
-## Each gentest invocation corresponds to a single tweet. You can use it
-## multiple times to produce a test with multiple tweets
-## e.g. for a test with tweets coming at 999, 1000, 1001
-## >	make gentest N=test-eviction T=999  H='A B C'
-## >	make gentest N=test-eviction T=1000 H='B C D'
-## >	make gentest N=test-eviction T=1001 H='C D E'
-## 
-## To remove a generated test, use the same name but deltest
-## >	make deltest N=test-eviction
-
 .DEFAULT_GOAL := all
-
+.PHONY: all help
 # thanks to http://marmelab.com for this idea.
 all:
-	  @awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_0-9-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	  @awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_0-9-]+:.*?## / {printf "\033[32m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 help: ## Detailed help.
-	@grep '^##' $(MAKEFILE_LIST) | sed -e 's,^## ,,g'
+	@grep '^##' $(MAKEFILE_LIST) | sed -e 's,^## ,,g' | awk '/^>/{printf "\033[32m%s\033[0m\n", $$0} !/^>/{print;}'
 
 # Using ascii data in the pipe
-full.rb.a:
+ascii.rb:
 	cat data-gen/tweets.txt | ./bin/cleanit.rb -a | ./bin/online-graph.rb -a
 
 # Using binary data in the pipe
-full.rb:
+binary.rb:
 	cat data-gen/tweets.txt | ./bin/cleanit.rb | ./bin/online-graph.rb
 
 # only ascii data transfer in the pipe for python
-full.py.a:
+ascii.py:
 	cat data-gen/tweets.txt | ./bin/cleanit.py -a | ./bin/online-graph.py -a
 
+## Execute the program on a given tweet file
+## >	make runit W=./data-gen/tweets.txt
 W=data-gen/tweets.txt
 runit: .prereq.heapdict ## Run the program on a given tweet (W=<tweet-file>)
 	./src/average_degree.py < $(W)
 
+## Execute the run.sh
+## >	make run
 run: .prereq.heapdict ## Execute ./run.sh
 	./run.sh
+## 
 
-# We disable `invalid-sequence-index` because it is a spurious warning
+## Run lint on the source
+## We disable `invalid-sequence-index` because it is a spurious warning
+## >	make lint
 lint: lint-flake8 lint-pylint ## Run linters on src/average_degree.py
 	@echo done.
 
+## Run flake8 on the source
+## >	make lint-flake8
 lint-flake8: | .prereq.flake8 ## Run flake8 (lint) on src/average_degree.py
 	python3 -m flake8 ./src/average_degree.py
 
+## Run pylint on the source
+## >	make lint-pylint
 lint-pylint: | .prereq.pylint ## Run pylint (lint) on src/average_degree.py
 	python3 -m pylint  --disable=E1126 ./src/average_degree.py
+## 
 
-# gentest: Produces insight tests. To produce tests with multiple tweets,
-# invoke the gentest for each tweet but keep the N same. 
-# base time is Mon Mar 28 23:23:12 +0000 2016
-# usage:
-#    make gentest T=<time in seconds from base> H=<hashtags> N=<name of test>
-#
-# e.g. To produce a three tweet combination, such that the last tweet evicts
-# the first,
-#
-# 	make gentest T=0 H="A B C" N=test-eviction
-# 	make gentest T=1 H="B C D" N=test-eviction
-# 	make gentest T=61 H="C D E" N=test-eviction
-#
-# Be sure to use deltest with same parameters if you want to restart
-# creating any test (because output.txt is not truncated).
+
+## Generate a test for the insight test suite 
+## The T parameter uses Mon Mar 28 23:23:12 +0000 2016 as the base time
+## >	make gentest T=<seconds from base> H=<hashtags> N=<test name>
+## e.g.
+## >	make gentest T=0 H='A B C' N=test-eviction
+## Each gentest invocation corresponds to a single tweet. You can use it
+## multiple times to produce a test with multiple tweets if N is same.
+## e.g. for a test with tweets coming at 999, 1000, 1001
+## >	make gentest N=test-eviction T=999  H='A B C'
+## >	make gentest N=test-eviction T=1000 H='B C D'
+## >	make gentest N=test-eviction T=1001 H='C D E'
+## Be sure to use deltest with same parameters if you want to restart
+## creating any test (because output.txt is not truncated).
 T=0
 H=my hash tags
 N=use-the-test-name-here
@@ -103,10 +73,17 @@ gentest: ## Generate an insight test case (see make help for examples).
 	cat $(INPUT) | ./src/average_degree.py > $(OUTPUT)
 	cat $(OUTPUT)
 
+## To remove a generated test, use the same name but deltest
+## >	make deltest N=test-eviction
+## 
 deltest: ## Remove an insight test case (N=<test case name>)
 	rm -rf $(shell dirname $(dir $(INPUT)))
 
-# prereq: Install all prerequisites for running.
+## Install all prerequisites
+## >	make prereq
+## Install all prerequisites on the user home
+## >	make prereq U=--user
+## 
 U=
 prereq: | .prereq.heapdict .prereq.coverage .prereq.flake8 .prereq.pylint ## Install all prerequisites
 	@echo done.
@@ -115,28 +92,40 @@ prereq: | .prereq.heapdict .prereq.coverage .prereq.flake8 .prereq.pylint ## Ins
 	pip3 install $* $(U)
 	@touch $@
 
-# Due to the limitations of coverage.py, the detailed html report produced is
-# only that of statement coverage. Both branch and statement coverage summary is
-# printed on the console.
+## Run unittests and print statement and branch coverage
+## >	make unittest
 unittest: unittest-branch unittest-statement ## Run unittests and print branch and statement coverage
 	@echo done.
 
+## Run unittests and print branck coveage
+## >	make unittest-branch
 unittest-branch: .prereq.coverage ## Run unittests and report branch coverage
 	python3 -m coverage run --branch --source=src/average_degree.py src/test_average_degree.py
 	@python3 -m coverage report
 
+## Run unittests and print statement coveage
+## >	make unittest-statement
 unittest-statement: .prereq.coverage ## Run unittests and report statement coverage
 	python3 -m coverage run --source=src/average_degree.py src/test_average_degree.py
 	@python3 -m coverage report
+## 
 
+## Report detailed coverage of previous unittests in html
+## >	make coverage
 coverage: ## Collect previously run unittest coverage detailed report in ./htmlcov
 	python3 -m coverage html
+## 
 
+## Run the insight test suite
+## >	make test
+## 
 test: ## Run the insight test suite
 	@echo Executing `ls insight_testsuite/tests/ | wc -l` tests
 	(cd insight_testsuite/ && ./run_tests.sh)
 	@cat insight_testsuite/results.txt 
 
+## Cleanup all the temporary files
+## >	make clean
 clean: ## Remove traces of previous execution such as coverage, tempfiles
 	@rm -rf htmlcov .coverage*
 	@rm -rf insight_testsuite/results.txt 
