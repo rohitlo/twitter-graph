@@ -25,5 +25,11 @@ lint:
 	python3 -m pylint ./src/average_degree.py | head
 
 T=data/test.txt
-test:
+mytest:
 	cat $(T) | ./bin/online-graph.py -a
+
+unittest:
+	python3 src/test_average_degree.py -v
+
+test:
+	cd insight_testsuite/; ./run_tests.sh
