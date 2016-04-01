@@ -30,7 +30,6 @@ class Processor:
 
         for edge in itertools.combinations(nodes, 2):
             self.add_edge(ctime, edge)
-        print("\tedges", self.edges)
 
     def gc_complete(self):
         if len(self.queue) == 0: return True
@@ -41,7 +40,6 @@ class Processor:
     def gc(self):
         while not self.gc_complete():
             min_edge, ctime = self.queue.popitem()
-            print("\tdiscard:", ctime, min_edge)
             del self.edges[min_edge]
 
     def avg(self):
