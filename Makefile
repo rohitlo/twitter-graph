@@ -48,9 +48,14 @@ run: .prereq.heapdict
 	./run.sh
 
 # lint: do linting with two linters.
-lint: | .prereq.flake8 .prereq.flake8
+lint: lint-flake8 lint-pylint
+	@echo done.
+
+lint-flake8: | .prereq.flake8
 	python3 -m flake8 ./src/average_degree.py
-	python3 -m pylint ./src/average_degree.py
+
+lint-pylint: | .prereq.pylint
+	python3 -m pylint  --disable=E1126,R0201 ./src/average_degree.py
 
 # gentest: Produces insight tests. To produce tests with multiple tweets,
 # invoke the gentest for each tweet but keep the N same. 
