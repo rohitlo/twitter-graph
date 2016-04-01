@@ -29,7 +29,12 @@ mytest:
 	cat $(T) | ./bin/online-graph.py -a
 
 unittest:
-	python3 src/test_average_degree.py -v
+	rm -rf .coverage*
+	python3 -m coverage run --branch --source=src/average_degree.py src/test_average_degree.py
+	python3 -m coverage report
+	python3 -m coverage run --source=src/average_degree.py src/test_average_degree.py
+	python3 -m coverage report
+	python3 -m coverage html
 
 test:
 	cd insight_testsuite/; ./run_tests.sh
