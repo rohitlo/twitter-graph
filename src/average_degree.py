@@ -101,23 +101,34 @@ class TweetGraph:
         nodes = set(itertools.chain.from_iterable(self.edges.keys()))
         return (2.0 * len(self.edges))/len(nodes)
 
+    def process_tweet(self, tweet: Dict[str, object]) -> int:
+        """
+        Process a tweet and return the current average vertex degree
+        :param tweet: the dict containing the stripped tweet.
+        :return: The current vertex degree
+        """
+        ctime, htags = self.trim_tweet(tweet)
+        self.update_hashtags(ctime, htags)
+        # We have to print average each time a new tweet makes its
+        # appearance irrespective of whether it can be ignored or not.
+        return self.avg_vdegree
 
-def trim_tweet(my_hash: Dict[str, Any]) -> Tuple[int, List[int]]:
-    """
-    Initial processing of the json line. Remove all the fluf
-    except created_at, and hashtags.
-    :param my_hash: The tweet dict to be de-fluffed
-    :return: A tuple containing ctime and hashtags if
-    the number of unique hashtags is at least two. None otherwise.
-    """
+    def trim_tweet(self, my_hash: Dict[str, Any]) -> Tuple[int, List[int]]:
+        """
+        Initial processing of the json line. Remove all the fluf
+        except created_at, and hashtags.
+        :param my_hash: The tweet dict to be de-fluffed
+        :return: A tuple containing ctime and hashtags if
+        the number of unique hashtags is at least two. None otherwise.
+        """
 
-    htags = my_hash.get('entities', {}).get('hashtags', [])
-    # We convert the strings to their hash, which makes it simpler
-    # and faster to process (especially if we want to do this part
-    # in another process). We also sort to make sure that any two
-    # keys always have a well defined edge name.
-    hashtags = sorted(set(hash(h['text']) for h in htags))
-    return my_hash['ctime'], hashtags
+        htags = my_hash.get('entities', {}).get('hashtags', [])
+        # We convert the strings to their hash, which makes it simpler
+        # and faster to process (especially if we want to do this part
+        # in another process). We also sort to make sure that any two
+        # keys always have a well defined edge name.
+        hashtags = sorted(set(hash(h['text']) for h in htags))
+        return my_hash['ctime'], hashtags
 
 
 def get_tweet(line: str) -> Union[Dict[str, object], None]:
@@ -155,14 +166,9 @@ def main():
     tweetgraph = TweetGraph(0, WINDOW)
     for line in sys.stdin:
         tweet = get_tweet(line)
-        if not tweet:
-            # Do not print rolling average in case this is not a valid tweet
-            continue
-        ctime, htags = trim_tweet(tweet)
-        tweetgraph.update_hashtags(ctime, htags)
-        # We have to print average each time a new tweet makes its
-        # appearance irrespective of whether it can be ignored or not.
-        print('%.2f' % tweetgraph.avg_vdegree)
+        # Do not print rolling average in case this is not a valid tweet
+        if tweet:
+            print('%.2f' % tweetgraph.process_tweet(tweet))
 
 if __name__ == "__main__":
     main()

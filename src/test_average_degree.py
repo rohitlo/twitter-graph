@@ -11,11 +11,9 @@ class TestFunctions(unittest.TestCase):
     def setUp(self):
         self.json_1 =  '{"created_at":"Thu Nov 05 05:05:39 +0000 2015"}'
         self.json_2 =  '{"created_at":"Thu Nov 05 05:06:39 +0000 2015"}'
+        self.json_3 =  '{"created_at":"Thu Nov 05 05:06:39 +0000 2015", "entities":{"hashtags":[{"text":"ABCD"}, {"text":"EFGH"}]}}'
         self.json_invalid_time =  '{"created_at":"Thu Nov 05"}'
         self.json_limit = '{"limit":{"track":262,"timestamp_ms":"1459231487897"}}'
-
-        self.cjson_1 = '{"ctime":100}'
-        self.cjson_2 = '{"ctime":100, "entities":{"hashtags":[{"text":"ABCD"}, {"text":"EFGH"}]}}'
 
     def tearDown(self):
         pass
@@ -40,21 +38,11 @@ class TestFunctions(unittest.TestCase):
         tweet = average_degree.get_tweet(self.json_limit)
         self.assertIsNone(tweet)
 
-    def test_trim_tweet(self):
-        """Should correctly extract the ctime field"""
-        j = json.loads(self.cjson_1)
-        tweet = average_degree.trim_tweet(j)
-        self.assertEqual(tweet, (100, []))
-
-    def test_trim_tweet_entities(self):
-        """Should correctly extract the hashtags"""
-        j = json.loads(self.cjson_2)
-        ctime, htags = average_degree.trim_tweet(j)
-        self.assertEqual(ctime, 100)
-        self.assertEqual(len(htags), 2)
-
 class TestTweetGraph(unittest.TestCase):
     def setUp(self):
+        self.cjson_1 = '{"ctime":100}'
+        self.cjson_2 = '{"ctime":1060, "entities":{"hashtags":[{"text":"ABCD"}, {"text":"EFGH"}]}}'
+
         self.etg = average_degree.TweetGraph(1060, 60)
         self.mytg = average_degree.TweetGraph(1000, 60)
 
@@ -157,12 +145,35 @@ class TestTweetGraph(unittest.TestCase):
         self.mytg.update_hashtags(1004, (2, 3))
         self.assertEqual(len(self.mytg.edges.keys()), 3)
 
+    def test_update_hashtags(self):
+        """Should correctly ignore expired hashtags"""
+        self.mytg.latest = 1003
+        self.mytg.update_hashtags(800, (2, 3))
+        self.assertEqual(len(self.mytg.edges.keys()), 3)
+
     def test_update_hashtags_with_gc(self):
         """Should correctly start garbage collection on new tweet"""
         self.mytg.latest = 1000
         self.mytg.update_hashtags(1061, (2, 3))
         self.assertEqual(len(self.mytg.edges.keys()), 1)
 
+    def test_trim_tweet(self):
+        """Should correctly extract the ctime field"""
+        j = json.loads(self.cjson_1)
+        tweet = self.etg.trim_tweet(j)
+        self.assertEqual(tweet, (100, []))
+
+    def test_trim_tweet_entities(self):
+        """Should correctly extract the hashtags"""
+        j = json.loads(self.cjson_2)
+        ctime, htags = self.etg.trim_tweet(j)
+        self.assertEqual(ctime, 1060)
+        self.assertEqual(len(htags), 2)
+
+    def test_process_tweet(self):
+        j = json.loads(self.cjson_2)
+        vdegree = self.etg.process_tweet(j)
+        self.assertEqual(vdegree, 1)
 
 if __name__ == '__main__':
     unittest.main()
