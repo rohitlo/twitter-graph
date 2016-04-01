@@ -1,49 +1,52 @@
+## The following commands are provided:
+## 
+## Execute the run.sh
+## >	make run
+## 
+## Execute the program on a given tweet file
+## >	make runit W=./data-gen/tweets.txt
+## 
+## Install all prerequisites
+## >	make prereq
+## 
+## Install all prerequisites on the user home
+## >	make prereq U=--user
+## 
+## Run lint on the source
+## >	make lint
+## 
+## Run unittests and extract coverage
+## >	make unittest
+## 
+## Report detailed coverage of previous unittests in html
+## >	make coverage
+## 
+## Run the insight test suite
+## >	make test
+## 
+## Generate a test for the insight test suite (see target for examples)
+## The T parameter uses Mon Mar 28 23:23:12 +0000 2016 as the base time
+## >	make gentest T=<time> H=<hashtags> N=<name>
+## e.g.
+## >	make gentest T=0 H='A B C' N=test-eviction
+## Each gentest invocation corresponds to a single tweet. You can use it
+## multiple times to produce a test with multiple tweets
+## e.g. for a test with tweets coming at 999, 1000, 1001
+## >	make gentest N=test-eviction T=999  H='A B C'
+## >	make gentest N=test-eviction T=1000 H='B C D'
+## >	make gentest N=test-eviction T=1001 H='C D E'
+## 
+## To remove a generated test, use the same name but deltest
+## >	make deltest N=test-eviction
+
 .DEFAULT_GOAL := all
 
 # thanks to http://marmelab.com for this idea.
 all:
 	  @awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_0-9-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-help: ## Full Help.
-	@echo "The following commands are provided:"
-	@echo "Execute the run.sh"
-	@echo ">	make run"
-	@echo
-	@echo "Execute the program on a given tweet file"
-	@echo ">	make runit W=./data-gen/tweets.txt"
-	@echo
-	@echo "Install all prerequisites"
-	@echo ">	make prereq"
-	@echo
-	@echo "Install all prerequisites on the user home"
-	@echo ">	make prereq U=--user"
-	@echo
-	@echo "Run lint on the source"
-	@echo ">	make lint"
-	@echo
-	@echo "Run unittests and extract coverage"
-	@echo ">	make unittest"
-	@echo
-	@echo "Report detailed coverage of previous unittests in html"
-	@echo ">	make coverage"
-	@echo
-	@echo "Run the insight test suite"
-	@echo ">	make test"
-	@echo
-	@echo "Generate a test for the insight test suite (see Makefile for examples)"
-	@echo "The T parameter uses Mon Mar 28 23:23:12 +0000 2016 as the base time"
-	@echo ">	make gentest T=<time> H=<hashtags> N=<name>"
-	@echo "e.g."
-	@echo ">	make gentest T=0 H='A B C' N=test-eviction"
-	@echo "Each gentest invocation corresponds to a single tweet. You can use it"
-	@echo "multiple times to produce a test with multiple tweets"
-	@echo "e.g. for a test with tweets coming at 999, 1000, 1001"
-	@echo ">	make gentest N=test-eviction T=999  H='A B C'"
-	@echo ">	make gentest N=test-eviction T=1000 H='B C D'"
-	@echo ">	make gentest N=test-eviction T=1001 H='C D E'"
-	@echo
-	@echo "To remove a generated test, use the same name but deltest"
-	@echo ">	make deltest N=test-eviction"
+help: ## Detailed help.
+	@grep '^##' $(MAKEFILE_LIST) | sed -e 's,^## ,,g'
 
 # Using ascii data in the pipe
 full.rb.a:
@@ -137,3 +140,4 @@ test: ## Run the insight test suite
 clean: ## Remove traces of previous execution such as coverage, tempfiles
 	@rm -rf htmlcov .coverage*
 	@rm -rf insight_testsuite/results.txt 
+
