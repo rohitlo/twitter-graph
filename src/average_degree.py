@@ -54,9 +54,9 @@ class TweetGraph:
         if (not old_ctime) or (ctime > old_ctime):
             # This is an almost sorted array, but python's timsort
             # is assured to have O(N) performance on such arrays.
-            # Hence it is probably better to append, and let timsort
-            # work its magick than to try inserting in the correct
-            # place (and probably less buggy).
+            # we expect it to be slightly less performant, but
+            # more simpler (and less buggy) than insert at the right place
+            # see branch deq-insert for the insertion version.
             self.queue.append((edge, ctime))
             l = sorted(self.queue, key=lambda t: t[1])
             self.queue.clear()
