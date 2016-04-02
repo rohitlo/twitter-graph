@@ -131,7 +131,7 @@ and output in `./tweet_output/output.txt`.
 
 ### Data structure choice
 
-There are two possible data structures one can use. A (heap), or
+There are two possible data structures one can use. A heap, or
 a dequeue kept sorted. A heap allows insertion and deletion in `O(log n)`
 while for a sorted dequeue, insertion/deletion at either end is `O(1)` while
 insertion or deletion in the middle may be `O(n)`. Note that we assume
