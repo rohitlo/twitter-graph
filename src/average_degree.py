@@ -7,6 +7,7 @@ import itertools
 import json
 import sys
 import time
+import collections
 from typing import Dict, Tuple, List, Any, Union
 
 from heapdict import heapdict
@@ -28,7 +29,7 @@ class TweetGraph:
         """
         self.latest = curtime
         self.edges = {}  # type: Dict[Tuple[int, int], int]
-        self.queue = heapdict()
+        self.queue = collections.deque()
         self.window = window
 
     def in_window(self, ctime: int) -> bool:
@@ -48,8 +49,17 @@ class TweetGraph:
         :param edge: A tuple containing two hash tags
         """
         old_ctime = self.edges.get(edge, None)
-        if (not old_ctime) or (ctime > old_ctime):
-            self.queue[edge] = ctime
+        if (not old_ctime):
+            self.queue.append((edge, ctime))
+            self.edges[edge] = ctime
+        elif (ctime > old_ctime):
+            self.queue.remove((edge, old_ctime))
+            self.queue.append((edge, ctime))
+
+            l = sorted(self.queue, key=lambda t: t[1])
+            self.queue.clear()
+            self.queue.extend(l)
+
             self.edges[edge] = ctime
 
     def update_hashtags(self, ctime: int, hashtags: List[int]) -> None:
@@ -77,9 +87,9 @@ class TweetGraph:
         """
         Check if the gc is complete.
         """
-        if len(self.queue) == 0:
+        if len(self.edges.keys()) == 0:
             return True
-        _, ctime = self.queue.peekitem()
+        _, ctime = self.queue[0]
         return self.in_window(ctime)
 
     def collect_garbage(self) -> None:
@@ -87,7 +97,7 @@ class TweetGraph:
         Perform garbage collection.
         """
         while not self.gc_complete():
-            min_edge, _ = self.queue.popitem()
+            min_edge, _ = self.queue.popleft()
             del self.edges[min_edge]
 
     @property

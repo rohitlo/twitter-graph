@@ -59,15 +59,18 @@ class TestTweetGraph(unittest.TestCase):
         self.etg = average_degree.TweetGraph(1060, 60)
         self.mytg = average_degree.TweetGraph(1000, 60)
 
-        edges = {(1,2): 999, (1,3): 1000, (2,3):1001}
-        self.mytg.edges = edges
-        for k in edges.keys():
-            self.mytg.queue[k] = edges[k]
+        edges = [((1, 2), 999), ((1, 3), 1000), ((2, 3), 1001)]
+        self.mytg.edges = dict(edges)
+        l = sorted(edges, key=lambda t: t[1])
+        self.mytg.queue.clear()
+        self.mytg.queue.extend(l)
+
 
     def set_current_edges(self, edges):
-        self.etg.edges = edges
-        for k in edges.keys():
-            self.etg.queue[k] = edges[k]
+        self.etg.edges = dict(edges)
+        l = sorted(edges, key=lambda t: t[1])
+        self.etg.queue.clear()
+        self.etg.queue.extend(l)
 
     def test_in_window(self):
         """Should correctly determine if passed time is within window."""
@@ -79,19 +82,16 @@ class TestTweetGraph(unittest.TestCase):
 
     def test_add_edge(self):
         """Should add a new edge correctly on both queue and dict"""
-        self.set_current_edges({(1,2): 1001, (1,3): 1002})
+        self.set_current_edges([((1, 2), 1001), ((1, 3), 1002)])
 
         self.etg.add_edge(1003,(2,3))
         self.assertEqual(self.etg.edges, {(1,2): 1001, (1,3): 1002, (2,3): 1003})
-        self.assertEqual(self.etg.queue.peekitem(), ((1, 2), 1001))
-        self.assertEqual(self.etg.queue[(2,3)], 1003)
-        self.assertEqual(self.etg.queue[(1,2)], 1001)
+        self.assertEqual(self.etg.queue[0], ((1, 2), 1001))
 
     def test_add_edge_update(self):
         """Should update if an edge exists, and later time."""
         self.mytg.add_edge(1060,(2,3))
         self.assertEqual(self.mytg.edges, {(1,2): 999, (1,3): 1000, (2,3): 1060})
-
 
     def test_add_edge_no_expired(self):
         """Should not add an expired edge."""
@@ -105,7 +105,7 @@ class TestTweetGraph(unittest.TestCase):
 
     def test_avg_vdegree_for_line(self):
         """Should correctly return 1 as average vertex degree for line"""
-        self.set_current_edges({(1,2): 1001})
+        self.set_current_edges([((1,2), 1001)])
         self.assertEqual(self.etg.avg_vdegree, 1)
 
     def test_avg_vdegree_for_triangle(self):
