@@ -17,7 +17,9 @@ TIME_FMT = "%a %b %d %H:%M:%S +0000 %Y"
 
 class TweetGraph:
     """
-    Process the tweet, and keeps track of the time.
+    Process the tweet, and keeps track of the time. This implementation uses
+    a priority queue (heap) containing a tuple (edge,created time) as the
+    backbone.
     """
     def __init__(self, curtime: int, window: int) -> None:
         """
@@ -162,7 +164,8 @@ def get_tweet(line: str) -> Union[Dict[str, object], None]:
 
 def main():
     """
-    The entry point.
+    The entry point. There are no command line parameters that we accept.
+    Instead, we accept just stdin, and write to stdout.
     """
     tweetgraph = TweetGraph(0, WINDOW)
     for line in sys.stdin:
