@@ -143,37 +143,48 @@ dequeue insertion algorithm and `deq-sort`, which is a slower (but simpler)
 dequeue based implementation relying on sorting). To check which is better,
 I profiled all the three
 
+    $ head -1 data-gen/new-tweets.txt | cut -d, -f1
+    {"created_at":"Sat Apr 02 20:20:41 +0000 2016"
+    $ tail -1 data-gen/new-tweets.txt | cut -d, -f1
+    {"created_at":"Sat Apr 02 20:53:11 +0000 2016"
+    $ wc -l data-gen/new-tweets.txt 
+    101436 data-gen/new-tweets.txt
+    $ du -ksh data-gen/new-tweets.txt
+    278M    data-gen/new-tweets.txt
     $ wc -l data-gen/new-tweets.1.txt 
     40216 data-gen/new-tweets.1.txt
-    $ du -ksh data-gen/new-tweets.1.txt 
+    $ du -ksh data-gen/new-tweets.1.txt
     112M    data-gen/new-tweets.1.txt
-
+    
 #### dequeue-insert
 
+    $ time make runit W=./data-gen/new-tweets.txt > out
+    99.78s user 0.79s system 94% cpu 1:46.71 total
+    100.48s user 0.77s system 98% cpu 1:43.27 total
+
     $ time make runit W=./data-gen/new-tweets.1.txt > out
-    make runit W=./data-gen/new-tweets.1.txt > a  39.25s user 0.36s system 98% cpu
-    40.381 total
-    $ time make runit W=./data-gen/new-tweets.1.txt > out
-    make runit W=./data-gen/new-tweets.1.txt > a  39.19s user 0.35s system 97% cpu
-    40.455 total
+    39.25s user 0.36s system 98% cpu 40.381 total
+    39.19s user 0.35s system 97% cpu 40.455 total
 
 #### dequeue-sort
 
+    $ time make runit W=./data-gen/new-tweets.txt > out
+    108.94s user 0.79s system 98% cpu 1:51.76 total
+    108.71s user 0.86s system 98% cpu 1:51.60 total
+
     $ time make runit W=./data-gen/new-tweets.1.txt > out
-    make runit W=./data-gen/new-tweets.1.txt > a  43.15s user 0.37s system 97% cpu
-    44.851 total
-    $ time make runit W=./data-gen/new-tweets.1.txt > out
-    make runit W=./data-gen/new-tweets.1.txt > a  42.77s user 0.33s system 98% cpu
-    43.896 total
+    43.15s user 0.37s system 97% cpu 44.851 total
+    42.77s user 0.33s system 98% cpu 43.896 total
 
 #### heap
 
+    $ time make runit W=./data-gen/new-tweets.txt > out
+    91.44s user 0.80s system 98% cpu 1:33.98 total
+    91.09s user 0.78s system 98% cpu 1:33.61 total
+
     $ time make runit W=./data-gen/new-tweets.1.txt > out
-    make runit W=./data-gen/new-tweets.1.txt > a  35.83s user 0.35s system 98% cpu
-    36.904 total
-    $ time make runit W=./data-gen/new-tweets.1.txt > out
-    make runit W=./data-gen/new-tweets.1.txt > a  35.41s user 0.31s system 98% cpu
-    36.407 total
+    35.83s user 0.35s system 98% cpu 36.904 total
+    35.41s user 0.31s system 98% cpu 36.407 total
 
 My results seem to indicate that a heap based implementation is has the best
 performance. Hence I have used the heap based implementation in my submission
