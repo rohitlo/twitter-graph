@@ -49,13 +49,15 @@ class TweetGraph:
         :param edge: A tuple containing two hash tags
         """
         old_ctime = self.edges.get(edge, None)
-        if (not old_ctime):
-            self.queue.append((edge, ctime))
-            self.edges[edge] = ctime
-        elif (ctime > old_ctime):
+        if old_ctime and ctime > old_ctime:
             self.queue.remove((edge, old_ctime))
+        if (not old_ctime) or (ctime > old_ctime):
+            # This is an almost sorted array, but python's timsort
+            # is assured to have O(N) performance on such arrays.
+            # Hence it is probably better to append, and let timsort
+            # work its magick than to try inserting in the correct
+            # place (and probably less buggy).
             self.queue.append((edge, ctime))
-
             l = sorted(self.queue, key=lambda t: t[1])
             self.queue.clear()
             self.queue.extend(l)
