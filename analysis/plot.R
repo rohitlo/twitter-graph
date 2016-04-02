@@ -6,7 +6,6 @@ p <- ggplot(data, aes(x=tweets, y=total.time, color=kind)) +
   coord_trans(x='log2',y='log2') +
   theme(axis.text.x=element_text(angle=90, hjust=1))
 
-#png('plot.png')
-pdf('plot.pdf')
+png('analysis/plot.png')
 p
 dev.off()

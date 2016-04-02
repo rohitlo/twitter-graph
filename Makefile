@@ -147,3 +147,10 @@ clean: ## Remove traces of previous execution such as coverage, tempfiles, touch
 	@rm -rf insight_testsuite/results.txt 
 	@rm -rf .prereq.*
 
+## Generate plot from the data given.
+## >	make plot
+plot: analysis/plot.png ## Generate plot from the data
+	@echo done.
+
+analysis/plot.png: analysis/data.csv
+	./analysis/plot.R
