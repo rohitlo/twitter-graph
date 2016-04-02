@@ -129,6 +129,54 @@ expects tweets in the `stdin` and prints out the rolling average to `stdout`.
 This is hooked up correctly in `run.sh` to process `./tweet_input/tweets.txt`
 and output in `./tweet_output/output.txt`.
 
+### Data structure choice
+
+There are two possible data structures one can use. A (heap), or
+a dequeue kept sorted. A heap allows insertion and deletion in `O(log n)`
+while for a sorted dequeue, insertion/deletion at either end is `O(1)` while
+insertion or deletion in the middle may be `O(n)`. Note that we assume
+a `decrease key` operation to be same as `remove + insert`.
+
+With this in mind, the data structure with most performance is dependent on
+the expected data. I have implemented both (see `deq-insert` branch for the
+dequeue insertion algorithm and `deq-sort`, which is a slower (but simpler)
+dequeue based implementation relying on sorting). To check which is better,
+I profiled all the three
+
+    $ du -ksh data-gen/new-tweets.1.txt 
+    112M    data-gen/new-tweets.1.txt
+
+#### dequeue-insert
+
+    $ time make runit W=./data-gen/new-tweets.1.txt > out
+    make runit W=./data-gen/new-tweets.1.txt > a  39.25s user 0.36s system 98% cpu
+    40.381 total
+    $ time make runit W=./data-gen/new-tweets.1.txt > out
+    make runit W=./data-gen/new-tweets.1.txt > a  39.19s user 0.35s system 97% cpu
+    40.455 total
+
+#### dequeue-sort
+
+    $ time make runit W=./data-gen/new-tweets.1.txt > out
+    make runit W=./data-gen/new-tweets.1.txt > a  43.15s user 0.37s system 97% cpu
+    44.851 total
+    $ time make runit W=./data-gen/new-tweets.1.txt > out
+    make runit W=./data-gen/new-tweets.1.txt > a  42.77s user 0.33s system 98% cpu
+    43.896 total
+
+#### heap
+
+    $ time make runit W=./data-gen/new-tweets.1.txt > out
+    make runit W=./data-gen/new-tweets.1.txt > a  35.83s user 0.35s system 98% cpu
+    36.904 total
+    $ time make runit W=./data-gen/new-tweets.1.txt > out
+    make runit W=./data-gen/new-tweets.1.txt > a  35.41s user 0.31s system 98% cpu
+    36.407 total
+
+My results seem to indicate that a heap based implementation is has the best
+performance. Hence I have used the heap based implementation in my submission
+(also in the branch `heap`).
+
 ## Notes on test generation
 
 See `gentest` target in Makefile.
