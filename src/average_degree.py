@@ -52,16 +52,14 @@ class TweetGraph:
         if old_ctime and ctime > old_ctime:
             self.queue.remove((edge, old_ctime))
         if (not old_ctime) or (ctime > old_ctime):
-            # This is an almost sorted array, but python's timsort
-            # is assured to have O(N) performance on such arrays.
-            # Hence it is probably better to append, and let timsort
-            # work its magick than to try inserting in the correct
-            # place (and probably less buggy).
-            self.queue.append((edge, ctime))
-            l = sorted(self.queue, key=lambda t: t[1])
-            self.queue.clear()
-            self.queue.extend(l)
-
+            i = 0
+            lst = list(self.queue)
+            for edg, ct in lst:
+                if ctime > ct: 
+                    i += 1
+                else:
+                    break
+            self.queue.insert(i,(edge, ctime))
             self.edges[edge] = ctime
 
     def update_hashtags(self, ctime: int, hashtags: List[int]) -> None:
