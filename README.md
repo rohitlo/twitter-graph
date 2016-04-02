@@ -143,6 +143,8 @@ dequeue insertion algorithm and `deq-sort`, which is a slower (but simpler)
 dequeue based implementation relying on sorting). To check which is better,
 I profiled all the three
 
+    $ wc -l data-gen/new-tweets.1.txt 
+    40216 data-gen/new-tweets.1.txt
     $ du -ksh data-gen/new-tweets.1.txt 
     112M    data-gen/new-tweets.1.txt
 
