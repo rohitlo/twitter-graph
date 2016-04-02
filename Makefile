@@ -2,10 +2,14 @@
 .PHONY: all help
 # thanks to http://marmelab.com for this idea.
 all:
-	  @awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_0-9-]+:.*?## / {printf "\033[32m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	  @awk 'BEGIN {FS = ":.*?## "} \
+					/^[a-zA-Z_0-9-]+:.*?## / {printf "\033[32m%-30s\033[0m %s\n", $$1, $$2}' \
+		$(MAKEFILE_LIST)
 
 help: ## Detailed help.
-	@sed -ne 's,^## ,,gp' $(MAKEFILE_LIST) | awk '/^>/{printf "\033[32m%s\033[0m\n", $$0} !/^>/{print;}'
+	@sed -ne 's,^## ,,gp' $(MAKEFILE_LIST) | \
+		awk '/^>/{printf "\033[32m%s\033[0m\n", $$0} \
+				!/^>/{print;}'
 
 ## Execute the program on a given tweet file
 ## >	make runit W=./data-gen/tweets.txt
@@ -32,7 +36,6 @@ run: .prereq.heapdict ## Execute ./run.sh
 ## 
 
 ## Run lint on the source
-## We disable `invalid-sequence-index` because it is a spurious warning
 ## >	make lint
 lint: lint-flake8 lint-pylint ## Run linters on src/average_degree.py
 	@echo done.
@@ -44,6 +47,7 @@ lint-flake8: | .prereq.flake8 ## Run flake8 (lint) on src/average_degree.py
 
 ## Run pylint on the source
 ## >	make lint-pylint
+# We disable `invalid-sequence-index` because it is a spurious warning
 lint-pylint: | .prereq.pylint ## Run pylint (lint) on src/average_degree.py
 	python3 -m pylint  --disable=E1126 ./src/average_degree.py
 ## 
@@ -60,8 +64,6 @@ lint-pylint: | .prereq.pylint ## Run pylint (lint) on src/average_degree.py
 ## >	make gentest N=test-eviction T=999  H='A B C'
 ## >	make gentest N=test-eviction T=1000 H='B C D'
 ## >	make gentest N=test-eviction T=1001 H='C D E'
-## Be sure to use deltest with same parameters if you want to restart
-## creating any test (because output.txt is not truncated).
 T=0
 H=my hash tags
 N=use-the-test-name-here
@@ -75,6 +77,8 @@ gentest: ## Generate an insight test case (see make help for examples).
 
 ## To remove a generated test, use the same name but deltest
 ## >	make deltest N=test-eviction
+## Be sure to use deltest with same parameters if you want to restart
+## creating any test (because output.txt is not truncated).
 ## 
 deltest: ## Remove an insight test case (N=<test case name>)
 	rm -rf $(shell dirname $(dir $(INPUT)))
@@ -95,26 +99,30 @@ i-%: .prereq.%
 	pip3 install $* $(O)
 	@touch $@
 
+
+SRC=src/average_degree.py
+TST=src/test_average_degree.py
+
 ## Run unittests and print statement and branch coverage
 ## >	make unittest-c
 unittest-c: unittest-branch unittest-statement ## Run unittests and print branch and statement coverage
 	@echo done.
 
-## Run unittests and print branck coveage
+## Run unittests and print branch coveage
 ## >	make unittest-branch
 unittest-branch: .prereq.coverage .prereq.heapdict ## Run unittests and report branch coverage
-	python3 -m coverage run --branch --source=src/average_degree.py src/test_average_degree.py
+	python3 -m coverage run --branch --source=$(SRC) $(TST)
 	@python3 -m coverage report
 
 ## Run unittests and print statement coveage
 ## >	make unittest-statement
 unittest-statement: .prereq.coverage .prereq.heapdict ## Run unittests and report statement coverage
-	python3 -m coverage run --source=src/average_degree.py src/test_average_degree.py
+	python3 -m coverage run --source=$(SRC) $(TST)
 	@python3 -m coverage report
 
 ## Run unittests without collecting coverage
 unittests: .prereq.heapdict  ## Run unittets without collecting coverage
-	python3 src/test_average_degree.py -v
+	python3 $(SRC) -v
 
 ## Report detailed coverage of previous unittests in html
 ## >	make coverage
