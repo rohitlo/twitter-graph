@@ -122,7 +122,7 @@ unittest-statement: .prereq.coverage .prereq.heapdict ## Run unittests and repor
 
 ## Run unittests without collecting coverage
 unittests: .prereq.heapdict  ## Run unittets without collecting coverage
-	python3 $(SRC) -v
+	python3 $(TST) -v
 
 ## Report detailed coverage of previous unittests in html
 ## >	make coverage
