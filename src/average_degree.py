@@ -75,7 +75,7 @@ class TweetGraph:
         for edge in itertools.combinations(hashtags, 2):
             self.add_edge(ctime, edge)
 
-    def gc_complete(self) -> None:
+    def gc_complete(self) -> bool:
         """
         Check if the gc is complete.
         """
@@ -103,7 +103,7 @@ class TweetGraph:
         nodes = set(itertools.chain.from_iterable(self.edges.keys()))
         return (2.0 * len(self.edges))/len(nodes)
 
-    def process_tweet(self, tweet: Dict[str, object]) -> int:
+    def process_tweet(self, tweet: Dict[str, object]) -> float:
         """
         Process a tweet and return the current average vertex degree
         :param tweet: the dict containing the stripped tweet.
