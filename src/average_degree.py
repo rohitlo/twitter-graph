@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
 This module computes the rolling average vertex degree of a twitter
-tweet hashtag graph. The given window is 60 seconds.
+tweet hashtag graph.
 """
 import itertools
 import json
 import sys
 import time
+import argparse
 from typing import Dict, Tuple, List, Any, Optional, cast, Iterable
 
 from heapdict import heapdict
 
-WINDOW = 60
 TIME_FMT = "%a %b %d %H:%M:%S +0000 %Y"
 
 
@@ -23,10 +23,9 @@ class TweetGraph:
     """
     def __init__(self, curtime: int, window: int) -> None:
         """
-        Initialize the object
+        Initialize the TweetGraph
         :param curtime: The starting time
         :param window: The sliding window
-        :return: a tweet graph object
         """
         self.latest = curtime
         self.edges = {}  # type: Dict[Tuple[str, str], int]
@@ -126,11 +125,11 @@ class TweetGraph:
         the number of unique hashtags is at least two. None otherwise.
         """
 
-        htags = my_hash.get('entities', {}).get('hashtags', [])
+        htags = my_hash.get(u'entities', {}).get(u'hashtags', [])
         # We sort to make sure that any two
         # keys always have a well defined edge name.
-        hashtags = sorted(set(h['text'] for h in htags))
-        return my_hash['ctime'], hashtags
+        hashtags = sorted(set(h[u'text'] for h in htags))
+        return my_hash[u'ctime'], hashtags
 
 
 def get_tweet(line: str) -> Optional[Dict[str, Any]]:
@@ -143,21 +142,21 @@ def get_tweet(line: str) -> Optional[Dict[str, Any]]:
     """
     try:
         j = json.loads(line)
-        created_at = j.get('created_at', None)
+        created_at = j.get(u'created_at', None)
         if not created_at:
             return None
 
         # We validate the creation time here. If the creation time
         # is in invalid format, it is an invalid tweet.
         ctime = int(time.mktime(time.strptime(created_at, TIME_FMT)))
-        j['ctime'] = ctime
+        j[u'ctime'] = ctime
         return j
     except ValueError:
         # We do not expect any records to be malformed. However, if there
         # are any, it is important not to abort the whole process, and
         # instead, just discard the record and let the user know through
         # another channel.
-        print('EXCEPTION:', line, file=sys.stderr)
+        print(u'EXCEPTION:', line, file=sys.stderr)
         return None
 
 
@@ -166,12 +165,15 @@ def main():
     The entry point. There are no command line parameters that we accept.
     Instead, we accept just stdin, and write to stdout.
     """
-    tweetgraph = TweetGraph(0, WINDOW)
+    pcmd = argparse.ArgumentParser()
+    pcmd.add_argument(u'window', type=int, help=u'window for rolling average')
+    args = pcmd.parse_args()
+    tweetgraph = TweetGraph(0, args.window)
     for line in sys.stdin:
         tweet = get_tweet(line)
         # Do not print rolling average in case this is not a valid tweet
         if tweet:
-            print('%.2f' % tweetgraph.process_tweet(tweet))
+            print(u'%.2f' % tweetgraph.process_tweet(tweet))
 
 if __name__ == "__main__":
     main()

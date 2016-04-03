@@ -12,13 +12,13 @@ to run.
 ## Additional libraries required.
 
 This solution makes use of [heapdict](https://pypi.python.org/pypi/HeapDict)
-All modules are hooked up to be installed automatically on first invocation of
-related target in `make`. If any needs to be installed separately, they can be
-installed with.
+module. All modules are hooked up to be installed automatically on first
+invocation of related target in `make`. If any needs to be installed separately,
+they can be installed with.
 
     make i-<module>
 
-For example, the heapdict module may be installed by
+For example, the `heapdict` module may be installed by
 
     make i-heapdict
 
@@ -30,15 +30,16 @@ The installation of python modules is setup to install to user home.
 If you wish it to be installed to the system path instead, pass an empty
 variable `O=` on make targets.
 
-e.g.
+For example, this will automatically install the required libraries to the user
+home 
 
     make test
 
-This will automatically install the required libraries to the user home while
+This will automatically install the required libraries to the system path
+(if you have access).
 
     make test O=
 
-will install required libraries to the system path (if you have access).
 Note that all commands that require a dependency to be installed takes the
 O= variable on make invocation.
 
@@ -86,7 +87,7 @@ The lint can be checked for both tools at once using the `lint` target
 
     make lint
 
-alternatively they can be invoked separately.
+Alternatively they can be invoked separately.
 
     make lint-flake8
     make lint-pylint
@@ -102,9 +103,9 @@ To run the code on `data-gen/tweets.txt`, use
 
     make runit
 
-alternatively
+Alternatively
 
-    make runit W=data-gen/tweets.txt
+    make runit TS=data-gen/tweets.txt
 
 
 ## Additional help
@@ -163,7 +164,7 @@ I profiled all the three
     101436 data-gen/new-tweets.txt
     $ du -ksh data-gen/new-tweets.txt
     278M    data-gen/new-tweets.txt
-    $ time make runit W=./data-gen/new-tweets.txt > out
+    $ time make runit TS=./data-gen/new-tweets.txt > out
     
     # dequeue-insert
     100.48s user 0.77s system 98% cpu 1:43.27 total

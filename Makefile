@@ -11,11 +11,33 @@ help: ## Detailed help.
 		awk '/^>/{printf "\033[32m%s\033[0m\n", $$0} \
 				!/^>/{print;}'
 
+## Environment:
+## 	SRC=<source>
+SRC=src/average_degree.py
+## 	TST=<test source>
+TST=src/test_average_degree.py
+## 	TS=<tweet data>
+TS=data-gen/tweets.txt
+## 	W=<rolling window>
+W=60
+## 	T=<time of tweet>
+T=0
+## 	H=<hash tags>
+H=my hash tags
+## 	N=<test name>
+N=use-the-test-name-here
+## 	O=<pip install options>
+O=--user
+## 	INPUT=<input for insight_testsuite>
+INPUT=insight_testsuite/tests/$(N)/tweet_input/tweets.txt
+## 	OUTPUT=<output from insight_testsuite>
+OUTPUT=insight_testsuite/tests/$(N)/tweet_output/output.txt
+## 
+
 ## Execute the program on a given tweet file
 ## >	make runit W=./data-gen/tweets.txt
-W=data-gen/tweets.txt
-runit: .prereq.heapdict ## Run the program on a given tweet (W=<tweet-file>)
-	./src/average_degree.py < $(W)
+runit: .prereq.heapdict ## Run the program on a given tweet (TS=<tweet-file>, W=<window>)
+	$(SRC) $(W) < $(TS)
 
 # Using ascii data in the pipe. Not a rolling average
 rb-ascii:
@@ -45,19 +67,19 @@ lint: lint-flake8 lint-pylint ## Run linters on src/average_degree.py
 # We disable the line too long warning because multiline type annotation 
 # is still not available on mypy
 lint-flake8: | .prereq.flake8 ## Run flake8 (lint) on src/average_degree.py
-	python3 -m flake8 --ignore E501 ./src/average_degree.py
+	python3 -m flake8 --ignore E501 $(SRC)
 
 ## Run pylint on the source
 ## >	make lint-pylint
 # We disable `invalid-sequence-index` because it is a spurious warning
 lint-pylint: | .prereq.pylint ## Run pylint (lint) on src/average_degree.py
-	python3 -m pylint  --disable=E1126 ./src/average_degree.py
+	python3 -m pylint  --disable=E1126 $(SRC)
 ## 
 
 ## Run mypy on the source to typecheck typehints
 ## >	make typecheck
 typecheck: | .prereq.mypy-lang ## Optional typecheck with mypy
-	python3 -m mypy ./src/average_degree.py
+	python3 -m mypy $(SRC)
 
 ## Generate a test for the insight test suite 
 ## The T parameter uses Mon Mar 28 23:23:12 +0000 2016 as the base time
@@ -70,15 +92,10 @@ typecheck: | .prereq.mypy-lang ## Optional typecheck with mypy
 ## >	make gentest N=test-eviction T=999  H='A B C'
 ## >	make gentest N=test-eviction T=1000 H='B C D'
 ## >	make gentest N=test-eviction T=1001 H='C D E'
-T=0
-H=my hash tags
-N=use-the-test-name-here
-INPUT=insight_testsuite/tests/$(N)/tweet_input/tweets.txt
-OUTPUT=insight_testsuite/tests/$(N)/tweet_output/output.txt
 gentest: ## Generate an insight test case (see make help for examples).
 	mkdir -p $(dir $(INPUT)) $(dir $(OUTPUT))
 	./bin/gen-tweet.py $(T) $(H) >> $(INPUT)
-	cat $(INPUT) | ./src/average_degree.py > $(OUTPUT)
+	cat $(INPUT) | $(SRC) > $(OUTPUT)
 	cat $(OUTPUT)
 
 ## To remove a generated test, use the same name but deltest
@@ -94,7 +111,6 @@ deltest: ## Remove an insight test case (N=<test case name>)
 ## Install all prerequisites on the user home
 ## >	make prereq U=--user
 ## 
-O=--user
 prereq: | .prereq.heapdict .prereq.coverage .prereq.flake8 .prereq.pylint ## Install all prerequisites
 	@echo done.
 
@@ -105,9 +121,6 @@ i-%: .prereq.%
 	pip3 install $* $(O)
 	@touch $@
 
-
-SRC=src/average_degree.py
-TST=src/test_average_degree.py
 
 ## Run unittests and print statement and branch coverage
 ## >	make unittest-c

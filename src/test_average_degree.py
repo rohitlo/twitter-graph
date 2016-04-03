@@ -40,13 +40,17 @@ class TestFunctions(unittest.TestCase):
 
     def test_main_tweet(self):
         """Should correctly determine vertex degree of tweet in string"""
-        with patch('sys.stdin', StringIO(self.json_3)), patch('sys.stdout', new=StringIO()) as fakeOutput:
+        with patch('sys.argv', ['', '60']), \
+             patch('sys.stdin', StringIO(self.json_3)), \
+             patch('sys.stdout', new=StringIO()) as fakeOutput:
             average_degree.main()
             self.assertEqual(fakeOutput.getvalue().strip(), '1.00')
 
     def test_main_limit(self):
         """Should correctly discard limit"""
-        with patch('sys.stdin', StringIO(self.json_limit)), patch('sys.stdout', new=StringIO()) as fakeOutput:
+        with patch('sys.argv', ['', '60']), \
+             patch('sys.stdin', StringIO(self.json_limit)),\
+             patch('sys.stdout', new=StringIO()) as fakeOutput:
             average_degree.main()
             self.assertEqual(fakeOutput.getvalue().strip(), '')
 
