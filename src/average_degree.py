@@ -7,9 +7,9 @@ import itertools
 import json
 import sys
 import time
-from typing import Dict, Tuple, List, Any, Union
+from typing import Dict, Tuple, List, Any, Optional, cast
 
-from heapdict import heapdict
+from heapdict import heapdict  # type: ignore
 
 WINDOW = 60
 TIME_FMT = "%a %b %d %H:%M:%S +0000 %Y"
@@ -72,8 +72,9 @@ class TweetGraph:
         # very nicely, we do not need to check for hashtags being
         # atleast two because itertools.combinations() will not
         # produce an item in that case.
+        # edge = None # type: Tuple[str, str]
         for edge in itertools.combinations(hashtags, 2):
-            self.add_edge(ctime, edge)
+            self.add_edge(ctime, cast(Tuple[str, str], edge))
 
     def gc_complete(self) -> bool:
         """
@@ -100,10 +101,10 @@ class TweetGraph:
         if not self.edges:
             return 0
         # Our edge.keys are tuples of hashtags. We flatten them.
-        nodes = set(itertools.chain.from_iterable(self.edges.keys()))
-        return (2.0 * len(self.edges))/len(nodes)
+        nodes = set(itertools.chain.from_iterable(self.edges.keys()))  # type: ignore
+        return (2.0 * len(self.edges)) / len(nodes)
 
-    def process_tweet(self, tweet: Dict[str, object]) -> float:
+    def process_tweet(self, tweet: Dict[str, Any]) -> float:
         """
         Process a tweet and return the current average vertex degree
         :param tweet: the dict containing the stripped tweet.
@@ -132,7 +133,7 @@ class TweetGraph:
         return my_hash['ctime'], hashtags
 
 
-def get_tweet(line: str) -> Union[Dict[str, object], None]:
+def get_tweet(line: str) -> Optional[Dict[str, Any]]:
     """
     Parse the line into json, and check that it is a valid tweet
     and not a limit message.

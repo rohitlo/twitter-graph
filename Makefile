@@ -42,8 +42,10 @@ lint: lint-flake8 lint-pylint ## Run linters on src/average_degree.py
 
 ## Run flake8 on the source
 ## >	make lint-flake8
+# We disable the line too long warning because multiline type annotation 
+# is still not available on mypy
 lint-flake8: | .prereq.flake8 ## Run flake8 (lint) on src/average_degree.py
-	python3 -m flake8 ./src/average_degree.py
+	python3 -m flake8 --ignore E501 ./src/average_degree.py
 
 ## Run pylint on the source
 ## >	make lint-pylint
