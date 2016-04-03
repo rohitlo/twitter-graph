@@ -29,7 +29,7 @@ class TweetGraph:
         :return: a tweet graph object
         """
         self.latest = curtime
-        self.edges = {}  # type: Dict[Tuple[int, int], int]
+        self.edges = {}  # type: Dict[Tuple[str, str], int]
         self.queue = heapdict()
         self.window = window
 
@@ -42,7 +42,7 @@ class TweetGraph:
         """
         return False if (self.latest - ctime) >= self.window else True
 
-    def add_edge(self, ctime: int, edge: Tuple[int, int]) -> None:
+    def add_edge(self, ctime: int, edge: Tuple[str, str]) -> None:
         """
         Add or update the given edge with the given time to
         our database of edges.
@@ -54,7 +54,7 @@ class TweetGraph:
             self.queue[edge] = ctime
             self.edges[edge] = ctime
 
-    def update_hashtags(self, ctime: int, hashtags: List[int]) -> None:
+    def update_hashtags(self, ctime: int, hashtags: List[str]) -> None:
         """
         Process the given set of hashtags for the given time.
         :param ctime: The creation time of the tweet
@@ -116,7 +116,7 @@ class TweetGraph:
         return self.avg_vdegree
 
     @staticmethod
-    def trim_tweet(my_hash: Dict[str, Any]) -> Tuple[int, List[int]]:
+    def trim_tweet(my_hash: Dict[str, Any]) -> Tuple[int, List[str]]:
         """
         Initial processing of the json line. Remove all the fluf
         except created_at, and hashtags.
@@ -126,11 +126,9 @@ class TweetGraph:
         """
 
         htags = my_hash.get('entities', {}).get('hashtags', [])
-        # We convert the strings to their hash, which makes it simpler
-        # and faster to process (especially if we want to do this part
-        # in another process). We also sort to make sure that any two
+        # We sort to make sure that any two
         # keys always have a well defined edge name.
-        hashtags = sorted(set(hash(h['text']) for h in htags))
+        hashtags = sorted(set(h['text'] for h in htags))
         return my_hash['ctime'], hashtags
 
 

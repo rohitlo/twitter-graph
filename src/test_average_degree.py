@@ -59,7 +59,7 @@ class TestTweetGraph(unittest.TestCase):
         self.etg = average_degree.TweetGraph(1060, 60)
         self.mytg = average_degree.TweetGraph(1000, 60)
 
-        edges = {(1,2): 999, (1,3): 1000, (2,3):1001}
+        edges = {('A','B'): 999, ('A','C'): 1000, ('B','C'):1001}
         self.mytg.edges = edges
         for k in edges.keys():
             self.mytg.queue[k] = edges[k]
@@ -79,24 +79,24 @@ class TestTweetGraph(unittest.TestCase):
 
     def test_add_edge(self):
         """Should add a new edge correctly on both queue and dict"""
-        self.set_current_edges({(1,2): 1001, (1,3): 1002})
+        self.set_current_edges({('A','B'): 1001, ('A','C'): 1002})
 
-        self.etg.add_edge(1003,(2,3))
-        self.assertEqual(self.etg.edges, {(1,2): 1001, (1,3): 1002, (2,3): 1003})
-        self.assertEqual(self.etg.queue.peekitem(), ((1, 2), 1001))
-        self.assertEqual(self.etg.queue[(2,3)], 1003)
-        self.assertEqual(self.etg.queue[(1,2)], 1001)
+        self.etg.add_edge(1003,('B','C'))
+        self.assertEqual(self.etg.edges, {('A','B'): 1001, ('A','C'): 1002, ('B','C'): 1003})
+        self.assertEqual(self.etg.queue.peekitem(), (('A','B'), 1001))
+        self.assertEqual(self.etg.queue[('B','C')], 1003)
+        self.assertEqual(self.etg.queue[('A','B')], 1001)
 
     def test_add_edge_update(self):
         """Should update if an edge exists, and later time."""
-        self.mytg.add_edge(1060,(2,3))
-        self.assertEqual(self.mytg.edges, {(1,2): 999, (1,3): 1000, (2,3): 1060})
+        self.mytg.add_edge(1060,('B','C'))
+        self.assertEqual(self.mytg.edges, {('A','B'): 999, ('A','C'): 1000, ('B','C'): 1060})
 
 
     def test_add_edge_no_expired(self):
         """Should not add an expired edge."""
-        self.mytg.add_edge(1000,(2,3))
-        self.assertEqual(self.mytg.edges, {(1,2): 999, (1,3): 1000, (2,3): 1001})
+        self.mytg.add_edge(1000,('B','C'))
+        self.assertEqual(self.mytg.edges, {('A','B'): 999, ('A','C'): 1000, ('B','C'): 1001})
 
 
     def test_avg_vdegree_zero(self):
@@ -105,7 +105,7 @@ class TestTweetGraph(unittest.TestCase):
 
     def test_avg_vdegree_for_line(self):
         """Should correctly return 1 as average vertex degree for line"""
-        self.set_current_edges({(1,2): 1001})
+        self.set_current_edges({('A','B'): 1001})
         self.assertEqual(self.etg.avg_vdegree, 1)
 
     def test_avg_vdegree_for_triangle(self):
@@ -155,19 +155,19 @@ class TestTweetGraph(unittest.TestCase):
     def test_update_hashtags(self):
         """Should correctly update hashtags when tweets arrive"""
         self.mytg.latest = 1000
-        self.mytg.update_hashtags(1004, (2, 3))
+        self.mytg.update_hashtags(1004, ('B','C'))
         self.assertEqual(len(self.mytg.edges.keys()), 3)
 
     def test_update_hashtags(self):
         """Should correctly ignore expired hashtags"""
         self.mytg.latest = 1003
-        self.mytg.update_hashtags(800, (2, 3))
+        self.mytg.update_hashtags(800, ('B','C'))
         self.assertEqual(len(self.mytg.edges.keys()), 3)
 
     def test_update_hashtags_with_gc(self):
         """Should correctly start garbage collection on new tweet"""
         self.mytg.latest = 1000
-        self.mytg.update_hashtags(1061, (2, 3))
+        self.mytg.update_hashtags(1061, ('B','C'))
         self.assertEqual(len(self.mytg.edges.keys()), 1)
 
     def test_trim_tweet(self):

@@ -52,6 +52,10 @@ lint-pylint: | .prereq.pylint ## Run pylint (lint) on src/average_degree.py
 	python3 -m pylint  --disable=E1126 ./src/average_degree.py
 ## 
 
+## Run mypy on the source to typecheck typehints
+## >	make typecheck
+typecheck: | .prereq.mypy-lang ## Optional typecheck with mypy
+	python3 -m mypy ./src/average_degree.py
 
 ## Generate a test for the insight test suite 
 ## The T parameter uses Mon Mar 28 23:23:12 +0000 2016 as the base time
