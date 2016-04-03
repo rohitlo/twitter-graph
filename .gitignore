@@ -6,8 +6,5 @@ insight_testsuite/results.txt
 insight_testsuite/temp
 # makefile targets
 .coverage
-.prereq.coverage
-.prereq.flake8
-.prereq.heapdict
-.prereq.pylint
+.prereq.*
 
