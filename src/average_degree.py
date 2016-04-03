@@ -71,7 +71,6 @@ class TweetGraph:
         # very nicely, we do not need to check for hashtags being
         # atleast two because itertools.combinations() will not
         # produce an item in that case.
-        # edge = None # type: Tuple[str, str]
         for edge in cast(Iterable, itertools.combinations(hashtags, 2)):
             self.add_edge(ctime, edge)
 
