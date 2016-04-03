@@ -7,9 +7,9 @@ import itertools
 import json
 import sys
 import time
-from typing import Dict, Tuple, List, Any, Optional, cast
+from typing import Dict, Tuple, List, Any, Optional, cast, Iterable
 
-from heapdict import heapdict  # type: ignore
+from heapdict import heapdict
 
 WINDOW = 60
 TIME_FMT = "%a %b %d %H:%M:%S +0000 %Y"
@@ -73,7 +73,7 @@ class TweetGraph:
         # atleast two because itertools.combinations() will not
         # produce an item in that case.
         # edge = None # type: Tuple[str, str]
-        for edge in itertools.combinations(hashtags, 2):
+        for edge in cast(Iterable, itertools.combinations(hashtags, 2)):
             self.add_edge(ctime, cast(Tuple[str, str], edge))
 
     def gc_complete(self) -> bool:
@@ -101,7 +101,7 @@ class TweetGraph:
         if not self.edges:
             return 0
         # Our edge.keys are tuples of hashtags. We flatten them.
-        nodes = set(itertools.chain.from_iterable(self.edges.keys()))  # type: ignore
+        nodes = set(itertools.chain.from_iterable(self.edges.keys()))
         return (2.0 * len(self.edges)) / len(nodes)
 
     def process_tweet(self, tweet: Dict[str, Any]) -> float:
