@@ -73,7 +73,7 @@ class TweetGraph:
         # produce an item in that case.
         # edge = None # type: Tuple[str, str]
         for edge in cast(Iterable, itertools.combinations(hashtags, 2)):
-            self.add_edge(ctime, cast(Tuple[str, str], edge))
+            self.add_edge(ctime, edge)
 
     def gc_complete(self) -> bool:
         """
