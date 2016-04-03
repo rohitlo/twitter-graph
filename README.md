@@ -9,6 +9,43 @@ The language used is `Python`. It requires at least version `3.5` for it
 to run.
 
 
+## Additional libraries required.
+
+This solution makes use of [heapdict](https://pypi.python.org/pypi/HeapDict)
+All modules are hooked up to be installed automatically on first invocation of
+related target in `make`. If any needs to be installed separately, they can be
+installed with.
+
+    make i-<module>
+
+For example, the heapdict module may be installed by
+
+    make i-heapdict
+
+You can install all the dependencies at once.
+
+    make prereq
+
+The installation of python modules is setup to install to user home.
+If you wish it to be installed to the system path instead, pass an empty
+variable `O=` on make targets.
+
+e.g.
+
+    make test
+
+This will automatically install the required libraries to the user home while
+
+    make test O=
+
+will install required libraries to the system path (if you have access).
+Note that all commands that require a dependency to be installed takes the
+O= variable on make invocation.
+
+We also note that one may use the standard installation procedure too e.g.
+
+    pip3.5 install heapdict --user
+
 ## Basic invocation and tests
 
 The `run` target executes `./run.sh` after installing prerequisite libraries in
@@ -16,30 +53,9 @@ the user home.
 
     make run
 
-or to allow installation of libraries in the system path
-
-    make run O=
-
 To execute the _insight_ test suite, (installing prerequisites in user home) use
 
     make test
-
-or
-
-    make test O=
-
-which installs the required libraries in the system path.
-
-## Additional libraries required.
-
-This solution makes use of [heapdict](https://pypi.python.org/pypi/HeapDict)
-which can be installed by (takes O= variable)
-
-    make i-heapdict
-
-You can install all the dependencies (takes O= variable)
-
-    make prereq
 
 ### Unit tests
 
@@ -47,9 +63,8 @@ If you would like to execute unit tests without coverage, it can be done by
 
     make unittests
 
-If you would like coverage information, it requires coverage to be installed (included in `prereq`).
-
-    make i-coverage
+If you would like coverage information, it requires the coverage module to be
+installed. (This is installed automatically as we mentioned before).
 
 To collect branch coverage, the `unittest-branch`  target is used, followed by
 extracting coverage. The project has 98% branch coverage.
@@ -63,26 +78,23 @@ by extracting coverage. The project has 99% statement coverage.
     make unittest-statement
     make coverage
 
-### Linters
+### Lint
 
-The project uses two linters: `flake8` and `pylint` (included in `prereq`) They can also
-be installed separately (takes O= variable)
-
-
-    make i-flake8 i-pylint
-
+The project uses two lints: `flake8` and `pylint` (installed automatically
+as we mentioned before)
 The lint can be checked for both tools at once using the `lint` target
 
     make lint
 
-or 
-
-    make lint-flake8 lint-pylint
-
-They can also be separately invoked
+alternatively they can be invoked separately.
 
     make lint-flake8
     make lint-pylint
+
+Type checking is preformed by the `mypy-lang` module (installed automatically
+as we mentioned before), and can be invoked by
+
+    make typecheck
 
 ### Executing the program.
 
@@ -90,7 +102,7 @@ To run the code on `data-gen/tweets.txt`, use
 
     make runit
 
-or alternatively
+alternatively
 
     make runit W=data-gen/tweets.txt
 
@@ -172,4 +184,5 @@ performance. Hence I have used the heap based implementation in my submission
 
 ## Notes on test generation
 
-See `gentest` target in Makefile.
+We generate tweets conforming to the twitter API from a template.
+See `gentest` target in Makefile for help.
