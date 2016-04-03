@@ -30,18 +30,17 @@ The installation of python modules is setup to install to user home.
 If you wish it to be installed to the system path instead, pass an empty
 variable `O=` on make targets.
 
+The additional libraries are automatically installed on a need basis when the
+targets in make are invoked. These targets also take the `O=` variable.
 For example, this will automatically install the required libraries to the user
-home 
+home before running the target `test`.
 
     make test
 
 This will automatically install the required libraries to the system path
-(if you have access).
+(if you have access) before running the target `test`.
 
     make test O=
-
-Note that all commands that require a dependency to be installed takes the
-O= variable on make invocation.
 
 We also note that one may use the standard installation procedure too e.g.
 
