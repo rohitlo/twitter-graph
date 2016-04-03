@@ -7,4 +7,5 @@ insight_testsuite/temp
 # makefile targets
 .coverage
 .prereq.*
-
+data-gen/*
+htmlcov/
