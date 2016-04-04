@@ -14,6 +14,8 @@ from typing import Dict, Tuple, List, Any, Optional, cast, Iterable
 from heapdict import heapdict
 
 TIME_FMT = "%a %b %d %H:%M:%S +0000 %Y"
+logging.basicConfig(level=logging.WARNING, format='%(levelname)s %(message)s', stream=sys.stderr)
+LOG = logging.getLogger(__name__)
 
 
 class TweetGraph:
@@ -88,9 +90,12 @@ class TweetGraph:
         """
         Perform garbage collection.
         """
+        LOG.info('start gc edges: %d queue: %d', len(self.edges.keys()), len(self.queue))
         while not self.gc_complete():
             min_edge, _ = self.queue.popitem()
             del self.edges[min_edge]
+            LOG.info('- %s', min_edge)
+        LOG.info('finished gc edges: %d queue: %d', len(self.edges.keys()), len(self.queue))
 
     @property
     def avg_vdegree(self) -> float:
@@ -156,7 +161,7 @@ def get_tweet(line: str) -> Optional[Dict[str, Any]]:
         # are any, it is important not to abort the whole process, and
         # instead, just discard the record and let the user know through
         # another channel.
-        logging.warning('malformed: %s', line)
+        LOG.warning('malformed: %s', line)
         return None
 
 
