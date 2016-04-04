@@ -31,7 +31,7 @@ class TestFunctions(unittest.TestCase):
         with patch('sys.stderr', new=StringIO()) as fakeOutput:
             tweet = average_degree.get_tweet(self.json_invalid_time)
             self.assertIsNone(tweet)
-            self.assertEqual(fakeOutput.getvalue().strip(), 'EXCEPTION: {"created_at":"Thu Nov 05"}')
+            self.assertEqual(fakeOutput.getvalue().strip(), 'EXCEPTION: {"created_at":"Thu Nov 05"}...')
 
     def test_get_tweet_limit(self):
         """Should correctly identify limit records"""
