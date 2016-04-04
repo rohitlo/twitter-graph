@@ -8,6 +8,7 @@ import json
 import sys
 import time
 import argparse
+import logging
 from typing import Dict, Tuple, List, Any, Optional, cast, Iterable
 
 from heapdict import heapdict
@@ -155,7 +156,7 @@ def get_tweet(line: str) -> Optional[Dict[str, Any]]:
         # are any, it is important not to abort the whole process, and
         # instead, just discard the record and let the user know through
         # another channel.
-        print('EXCEPTION:', "{0:.50s}...".format(line), file=sys.stderr)
+        logging.warning('malformed: %s', line)
         return None
 
 
