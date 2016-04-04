@@ -172,7 +172,7 @@ def main():
         tweet = get_tweet(line)
         # Do not print rolling average in case this is not a valid tweet
         if tweet:
-            print('%.2f' % tweetgraph.process_tweet(tweet))
+            print('{:0.2f}'.format(tweetgraph.process_tweet(tweet)))
 
 if __name__ == "__main__":
     main()
