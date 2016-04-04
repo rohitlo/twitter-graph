@@ -155,7 +155,7 @@ def get_tweet(line: str) -> Optional[Dict[str, Any]]:
         # are any, it is important not to abort the whole process, and
         # instead, just discard the record and let the user know through
         # another channel.
-        print('EXCEPTION:', line, file=sys.stderr)
+        print('EXCEPTION:', "{0:.50s}...".format(line), file=sys.stderr)
         return None
 
 
