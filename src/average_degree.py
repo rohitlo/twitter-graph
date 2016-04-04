@@ -161,8 +161,8 @@ def get_tweet(line: str) -> Optional[Dict[str, Any]]:
 
 def main():
     """
-    The entry point. There are no command line parameters that we accept.
-    Instead, we accept just stdin, and write to stdout.
+    The entry point. We require a single parameter: the window length.
+    We also accept tweets in stdin, and write to stdout.
     """
     pcmd = argparse.ArgumentParser()
     pcmd.add_argument('window', type=int, help='window for rolling average')
