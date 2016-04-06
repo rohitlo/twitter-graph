@@ -8,9 +8,8 @@ import json
 import sys
 import time
 import collections
+import bisect
 from typing import Dict, Tuple, List, Any, Union
-
-from heapdict import heapdict
 
 WINDOW = 60
 TIME_FMT = "%a %b %d %H:%M:%S +0000 %Y"
@@ -52,14 +51,9 @@ class TweetGraph:
         if old_ctime and ctime > old_ctime:
             self.queue.remove((edge, old_ctime))
         if (not old_ctime) or (ctime > old_ctime):
-            i = 0
-            lst = list(self.queue)
-            for edg, ct in lst:
-                if ctime > ct: 
-                    i += 1
-                else:
-                    break
-            self.queue.insert(i,(edge, ctime))
+            lst = [l[1] for l in list(self.queue)]
+            i = bisect.bisect_right(lst, ctime)
+            self.queue.insert(i, (edge, ctime))
             self.edges[edge] = ctime
 
     def update_hashtags(self, ctime: int, hashtags: List[int]) -> None:
