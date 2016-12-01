@@ -14,7 +14,7 @@ from typing import Dict, Tuple, List, Any, Optional, cast, Iterable
 from heapdict import heapdict
 
 TIME_FMT = "%a %b %d %H:%M:%S +0000 %Y"
-logging.basicConfig(level=logging.WARNING, format='%(levelname)s %(message)s', stream=sys.stderr)
+logging.basicConfig(level=logging.WARNING, format='%(levelname)s %(message)s', stream=sys.stderr) # type: ignore
 LOG = logging.getLogger(__name__)
 
 
@@ -44,7 +44,7 @@ class TweetGraph:
         """
         return False if (self.latest - ctime) >= self.window else True
 
-    def add_edge(self, ctime: int, edge: Tuple[str, str]) -> None:
+    def add_edge(self, ctime: int, edge: Tuple[Any, Any]) -> None:
         """
         Add or update the given edge with the given time to
         our database of edges.
@@ -56,7 +56,7 @@ class TweetGraph:
             self.queue[edge] = ctime
             self.edges[edge] = ctime
 
-    def update_hashtags(self, ctime: int, hashtags: List[str]) -> None:
+    def update_hashtags(self, ctime: int, hashtags: List[Any]) -> None:
         """
         Process the given set of hashtags for the given time.
         :param ctime: The creation time of the tweet
@@ -108,7 +108,7 @@ class TweetGraph:
         nodes = set(itertools.chain.from_iterable(self.edges.keys()))
         return (2.0 * len(self.edges)) / len(nodes)
 
-    def process_tweet(self, tweet: Dict[str, Any]) -> float:
+    def process_tweet(self, tweet: Dict[Any, Any]) -> float:
         """
         Process a tweet and return the current average vertex degree
         :param tweet: the dict containing the stripped tweet.
@@ -121,7 +121,7 @@ class TweetGraph:
         return self.avg_vdegree
 
     @staticmethod
-    def trim_tweet(my_hash: Dict[str, Any]) -> Tuple[int, List[str]]:
+    def trim_tweet(my_hash: Dict[Any, Any]) -> Tuple[Any, Any]:
         """
         Initial processing of the json line. Remove all the fluf
         except created_at, and hashtags.
@@ -137,7 +137,7 @@ class TweetGraph:
         return my_hash['ctime'], hashtags
 
 
-def get_tweet(line: str) -> Optional[Dict[str, Any]]:
+def get_tweet(line: str) -> Optional[Any]:
     """
     Parse the line into json, and check that it is a valid tweet
     and not a limit message.
